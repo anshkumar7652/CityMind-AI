@@ -18,7 +18,7 @@ import { auth, db, storage, isFirebaseConfigured } from '@/lib/firebase';
 import { COMMUNITY_CHALLENGES } from '@/lib/data';
 import { extractGpsFromImage } from '@/lib/exif-gps';
 
-export default function CitizenPortal({ userReports, onNewReportSubmit, rewardPoints, userProfile, onLoginSuccess, onClaimCarbonCredits }) {
+export default function CitizenPortal({ userReports, onNewReportSubmit, onReportUpvote, rewardPoints, userProfile, onLoginSuccess, onClaimCarbonCredits }) {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
@@ -180,34 +180,41 @@ export default function CitizenPortal({ userReports, onNewReportSubmit, rewardPo
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          user: currentUser?.displayName || currentUser?.email?.split('@')[0] || 'Aarav Sharma',
+          user: currentUser?.displayName || currentUser?.email?.split('@')[0] || userProfile?.name || 'Aarav Sharma',
           category: category,
           location: gpsLocation.address,
           description: description,
-          photoUrl: finalPhotoUrl
+          photoUrl: finalPhotoUrl,
+          recentReports: (userReports || []).slice(0, 10)
         })
       });
 
       const data = await response.json();
       const verifiedReport = data.report;
 
-      try {
-        if (isFirebaseConfigured) {
-          await Promise.race([
-            addDoc(collection(db, "reports"), {
-              ...verifiedReport,
-              createdAt: serverTimestamp()
-            }),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('Firestore sync timeout')), 2500))
-          ]);
+      if (data.isDuplicate && data.matchedReportId) {
+        if (onReportUpvote) onReportUpvote(data.matchedReportId);
+        setLastVerifiedReport({ ...verifiedReport, status: 'Merged & Upvoted (Duplicate)' });
+        setSubmitSuccess(true);
+      } else {
+        try {
+          if (isFirebaseConfigured) {
+            await Promise.race([
+              addDoc(collection(db, "reports"), {
+                ...verifiedReport,
+                createdAt: serverTimestamp()
+              }),
+              new Promise((_, reject) => setTimeout(() => reject(new Error('Firestore sync timeout')), 2500))
+            ]);
+          }
+        } catch (dbErr) {
+          console.warn("Firestore client sync notice:", dbErr.message);
         }
-      } catch (dbErr) {
-        console.warn("Firestore client sync notice:", dbErr.message);
-      }
 
-      onNewReportSubmit(verifiedReport);
-      setLastVerifiedReport(verifiedReport);
-      setSubmitSuccess(true);
+        onNewReportSubmit(verifiedReport);
+        setLastVerifiedReport(verifiedReport);
+        setSubmitSuccess(true);
+      }
       setDescription('');
       setPhotoPreview(null);
       setGpsSource(null);
@@ -315,9 +322,26 @@ export default function CitizenPortal({ userReports, onNewReportSubmit, rewardPo
           </div>
 
           {submitSuccess && lastVerifiedReport && (
-            <div style={{ background: 'var(--emerald-light)', border: '1px solid var(--emerald)', padding: '12px', borderRadius: '10px', marginBottom: '14px', fontSize: '0.85rem', color: 'var(--emerald)' }}>
-              <div style={{ fontWeight: '700', marginBottom: '4px' }}>✓ Report verified by Next.js AI Engine & synced!</div>
-              <div>ID: <strong>{lastVerifiedReport.id}</strong> | Verdict: <strong>{lastVerifiedReport.verificationStatus}</strong> (+150 Points)</div>
+            <div style={{ 
+              background: lastVerifiedReport.status.includes('Duplicate') ? 'rgba(59, 130, 246, 0.1)' : 'var(--emerald-light)', 
+              border: `1px solid ${lastVerifiedReport.status.includes('Duplicate') ? '#3b82f6' : 'var(--emerald)'}`, 
+              padding: '12px', 
+              borderRadius: '10px', 
+              marginBottom: '14px', 
+              fontSize: '0.85rem', 
+              color: lastVerifiedReport.status.includes('Duplicate') ? '#1d4ed8' : 'var(--emerald)' 
+            }}>
+              {lastVerifiedReport.status.includes('Duplicate') ? (
+                <>
+                  <div style={{ fontWeight: '700', marginBottom: '4px' }}>🔄 Duplicate Report Detected & Merged!</div>
+                  <div>We found an existing complaint for this issue. We have upvoted report <strong>{lastVerifiedReport.id}</strong> on your behalf and increased its priority! (+150 Points)</div>
+                </>
+              ) : (
+                <>
+                  <div style={{ fontWeight: '700', marginBottom: '4px' }}>✓ Report verified by Next.js AI Engine & synced!</div>
+                  <div>ID: <strong>{lastVerifiedReport.id}</strong> | Verdict: <strong>{lastVerifiedReport.verificationStatus}</strong> (+150 Points)</div>
+                </>
+              )}
             </div>
           )}
 
@@ -586,6 +610,16 @@ export default function CitizenPortal({ userReports, onNewReportSubmit, rewardPo
               <div style={{ fontWeight: '700', fontSize: '0.95rem' }}>{selectedReportDetail.id} - {selectedReportDetail.category}</div>
               <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Status: <strong>{selectedReportDetail.status}</strong></div>
               <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Location: {selectedReportDetail.location}</div>
+              {selectedReportDetail.aiAnalysis?.damageSeverity && (
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                  AI Analysis: <strong>{selectedReportDetail.aiAnalysis.damageSeverity}</strong>
+                </div>
+              )}
+              {selectedReportDetail.aiAnalysis?.duplicateScore && (
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                  AI Authenticity: <strong>{selectedReportDetail.aiAnalysis.aiGenProbability} | {selectedReportDetail.aiAnalysis.duplicateScore}</strong>
+                </div>
+              )}
             </div>
 
             {selectedReportDetail.photoUrl && (

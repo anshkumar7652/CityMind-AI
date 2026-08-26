@@ -4,8 +4,14 @@ export const CITY_SECTORS = [
     name: "Sector 62 (Tech Corridor)",
     healthScore: 77,
     status: "moderate",
-    metrics: { roadQuality: 80, cleanliness: 95, airQuality: 72, traffic: 60, waterLeakage: 88, noise: 65 },
+    metrics: { roadQuality: 80, cleanliness: 95, airQuality: 72, traffic: 60, waterLeakage: 88, noise: 65, waterPressure: "4.2 Bar", gridLoad: "78%" },
     coordinates: [28.6280, 77.3649],
+    polygonCoords: [
+      [28.6380, 77.3549],
+      [28.6380, 77.3749],
+      [28.6180, 77.3749],
+      [28.6180, 77.3549]
+    ],
     predictedRisk: "High Pothole Risk (85% within 14 days)",
     popBenefited: "42,000 residents"
   },
@@ -14,8 +20,14 @@ export const CITY_SECTORS = [
     name: "Sector 18 (Commercial Hub)",
     healthScore: 62,
     status: "high-risk",
-    metrics: { roadQuality: 54, cleanliness: 68, airQuality: 58, traffic: 42, waterLeakage: 70, noise: 45 },
+    metrics: { roadQuality: 54, cleanliness: 68, airQuality: 58, traffic: 42, waterLeakage: 70, noise: 45, waterPressure: "6.2 Bar (High)", gridLoad: "92% (Critical)" },
     coordinates: [28.5708, 77.3261],
+    polygonCoords: [
+      [28.5808, 77.3161],
+      [28.5808, 77.3361],
+      [28.5608, 77.3361],
+      [28.5608, 77.3161]
+    ],
     predictedRisk: "Water Main Burst & Flash Flood (82%)",
     popBenefited: "78,000 daily commuters"
   },
@@ -24,8 +36,14 @@ export const CITY_SECTORS = [
     name: "Cyber City Plaza",
     healthScore: 91,
     status: "healthy",
-    metrics: { roadQuality: 92, cleanliness: 96, airQuality: 88, traffic: 84, waterLeakage: 95, noise: 82 },
+    metrics: { roadQuality: 92, cleanliness: 96, airQuality: 88, traffic: 84, waterLeakage: 95, noise: 82, waterPressure: "3.8 Bar", gridLoad: "64%" },
     coordinates: [28.4950, 77.0895],
+    polygonCoords: [
+      [28.5050, 77.0795],
+      [28.5050, 77.0995],
+      [28.4850, 77.0995],
+      [28.4850, 77.0795]
+    ],
     predictedRisk: "Low Risk (Scheduled Green Audits)",
     popBenefited: "95,000 tech workforce"
   },
@@ -34,8 +52,14 @@ export const CITY_SECTORS = [
     name: "Sector 4 (Residential East)",
     healthScore: 68,
     status: "moderate",
-    metrics: { roadQuality: 70, cleanliness: 65, airQuality: 69, traffic: 75, waterLeakage: 52, noise: 78 },
+    metrics: { roadQuality: 70, cleanliness: 65, airQuality: 69, traffic: 75, waterLeakage: 52, noise: 78, waterPressure: "3.2 Bar", gridLoad: "81%" },
     coordinates: [28.5912, 77.3190],
+    polygonCoords: [
+      [28.6012, 77.3090],
+      [28.6012, 77.3290],
+      [28.5812, 77.3290],
+      [28.5812, 77.3090]
+    ],
     predictedRisk: "Garbage Overflow & Disease Risk (74%)",
     popBenefited: "31,000 families"
   }

@@ -5,17 +5,26 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { CITY_SECTORS, PREDICTIVE_HAZARDS } from '@/lib/data';
 
-export default function DigitalTwinMap({ selectedSectorId, onSectorSelect, userReports = [], onApproveDispatch }) {
+export default function DigitalTwinMap({ selectedSectorId, onSectorSelect, userReports = [], onApproveDispatch, isSimulationMode }) {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const sectorsGroupRef = useRef(null);
   const hazardsGroupRef = useRef(null);
   const reportsGroupRef = useRef(null);
+  const heatmapGroupRef = useRef(null);
 
   // Map layer toggle states
   const [showSectors, setShowSectors] = useState(true);
   const [showHazards, setShowHazards] = useState(true);
   const [showReports, setShowReports] = useState(true);
+  const [showHeatmap, setShowHeatmap] = useState(false);
+
+  // Sync simulation mode with Heatmap state if requested
+  useEffect(() => {
+    if (isSimulationMode) {
+      setShowHeatmap(true);
+    }
+  }, [isSimulationMode]);
 
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return;
@@ -34,6 +43,7 @@ export default function DigitalTwinMap({ selectedSectorId, onSectorSelect, userR
     }).addTo(map);
 
     sectorsGroupRef.current = L.layerGroup().addTo(map);
+    heatmapGroupRef.current = L.layerGroup().addTo(map);
     hazardsGroupRef.current = L.layerGroup().addTo(map);
     reportsGroupRef.current = L.layerGroup().addTo(map);
 
@@ -52,47 +62,83 @@ export default function DigitalTwinMap({ selectedSectorId, onSectorSelect, userR
   // Re-render markers when layer toggles or userReports update
   useEffect(() => {
     renderMapLayers();
-  }, [showSectors, showHazards, showReports, userReports]);
+  }, [showSectors, showHazards, showReports, showHeatmap, userReports, isSimulationMode]);
 
   // Fly to sector when selectedSectorId changes
   useEffect(() => {
     if (!mapInstanceRef.current) return;
     const sec = CITY_SECTORS.find(s => s.id === selectedSectorId);
     if (sec) {
-      mapInstanceRef.current.flyTo(sec.coordinates, 14, { duration: 1.2 });
+      mapInstanceRef.current.flyTo(sec.coordinates, 13, { duration: 1.2 });
     }
   }, [selectedSectorId]);
 
   function renderMapLayers() {
     if (!mapInstanceRef.current) return;
 
-    // 1. Render Sector Circles Layer
+    // 1. Render Sector Polygon Layer
     if (sectorsGroupRef.current) {
       sectorsGroupRef.current.clearLayers();
       if (showSectors) {
         CITY_SECTORS.forEach(sec => {
-          const color = sec.status === 'healthy' ? '#10b981' : sec.status === 'moderate' ? '#f59e0b' : '#ef4444';
+          let status = sec.status;
+          let healthScore = sec.healthScore;
 
-          const circle = L.circle(sec.coordinates, {
-            color: color,
-            fillColor: color,
-            fillOpacity: 0.22,
-            radius: 1200
-          }).addTo(sectorsGroupRef.current);
+          // Simulation Mode overrides Sector 18
+          if (isSimulationMode && sec.id === 'sec-18') {
+            status = 'high-risk';
+            healthScore = 20;
+          }
 
-          circle.bindTooltip(`<b>${sec.name}</b><br/>Health Score: ${sec.healthScore}/100`, {
-            permanent: false,
-            direction: 'top'
-          });
+          const color = status === 'healthy' ? '#10b981' : status === 'moderate' ? '#f59e0b' : '#ef4444';
 
-          circle.on('click', () => {
-            if (onSectorSelect) onSectorSelect(sec.id);
-          });
+          if (sec.polygonCoords) {
+            const polygon = L.polygon(sec.polygonCoords, {
+              color: color,
+              weight: 2,
+              fillColor: color,
+              fillOpacity: 0.15,
+            }).addTo(sectorsGroupRef.current);
+
+            polygon.bindTooltip(`<b>${sec.name}</b><br/>Health Score: ${healthScore}/100`, {
+              permanent: false,
+              direction: 'top'
+            });
+
+            polygon.on('click', () => {
+              if (onSectorSelect) onSectorSelect(sec.id);
+            });
+          }
         });
       }
     }
 
-    // 2. Render Predictive Hazards Layer
+    // 2. Render Heatmap Layer
+    if (heatmapGroupRef.current) {
+      heatmapGroupRef.current.clearLayers();
+      if (showHeatmap) {
+        PREDICTIVE_HAZARDS.forEach(haz => {
+          let latLng = [28.6280, 77.3649];
+          if (haz.id === 'pred-102') latLng = [28.5708, 77.3261];
+          if (haz.id === 'pred-103') latLng = [28.5912, 77.3190];
+
+          let probability = haz.probability;
+          if (isSimulationMode && haz.id === 'pred-102') {
+            probability = 98; // Max probability for storm mode
+          }
+
+          // Red gradient circle
+          L.circle(latLng, {
+            color: 'transparent',
+            fillColor: '#dc2626',
+            fillOpacity: probability / 100 * 0.8, // Dynamic opacity based on probability
+            radius: probability * 35 // Larger radius for higher probability
+          }).addTo(heatmapGroupRef.current);
+        });
+      }
+    }
+
+    // 3. Render Predictive Hazards Layer
     if (hazardsGroupRef.current) {
       hazardsGroupRef.current.clearLayers();
       if (showHazards) {
@@ -100,6 +146,11 @@ export default function DigitalTwinMap({ selectedSectorId, onSectorSelect, userR
           let latLng = [28.6280, 77.3649];
           if (haz.id === 'pred-102') latLng = [28.5708, 77.3261];
           if (haz.id === 'pred-103') latLng = [28.5912, 77.3190];
+
+          let probability = haz.probability;
+          if (isSimulationMode && haz.id === 'pred-102') {
+            probability = 98; 
+          }
 
           const hazardIcon = L.divIcon({
             className: 'custom-hazard-pin',
@@ -112,7 +163,7 @@ export default function DigitalTwinMap({ selectedSectorId, onSectorSelect, userR
           marker.bindPopup(`
             <div style="font-family: sans-serif; padding: 4px; max-width: 220px;">
               <span style="background: #fee2e2; color: #dc2626; font-weight: 700; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px;">
-                PREDICTED RISK (${haz.probability}%)
+                PREDICTED RISK (${probability}%)
               </span>
               <h4 style="font-size: 0.88rem; font-weight: 700; margin: 6px 0 2px 0;">${haz.issue}</h4>
               <p style="font-size: 0.75rem; color: #64748b; margin-bottom: 6px;">${haz.sector}</p>
@@ -125,7 +176,7 @@ export default function DigitalTwinMap({ selectedSectorId, onSectorSelect, userR
       }
     }
 
-    // 3. Render Live Citizen Reports Layer
+    // 4. Render Live Citizen Reports Layer
     if (reportsGroupRef.current) {
       reportsGroupRef.current.clearLayers();
       if (showReports && userReports.length > 0) {
@@ -188,7 +239,12 @@ export default function DigitalTwinMap({ selectedSectorId, onSectorSelect, userR
 
         <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', color: 'var(--crimson)' }}>
           <input type="checkbox" checked={showHazards} onChange={(e) => setShowHazards(e.target.checked)} />
-          🔴 AI Hazards
+          📍 Pins
+        </label>
+        
+        <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', color: '#dc2626' }}>
+          <input type="checkbox" checked={showHeatmap} onChange={(e) => setShowHeatmap(e.target.checked)} />
+          🔥 Heatmap
         </label>
 
         <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', color: 'var(--primary)' }}>

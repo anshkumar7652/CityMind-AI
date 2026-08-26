@@ -102,6 +102,23 @@ export default function Home() {
     setUserReports(prev => prev.map(r => r.id === reportId ? { ...r, status: newStatus } : r));
   };
 
+  const handleReportUpvote = (reportId) => {
+    setUserReports(prev => prev.map(r => {
+      if (r.id === reportId) {
+        return {
+          ...r,
+          priorityScore: Math.min(100, (r.priorityScore || 0) + 15),
+          status: 'Verified (Multiple)',
+          timeAgo: 'Just now'
+        };
+      }
+      return r;
+    }));
+    setRewardPoints(prev => prev + 150);
+    setTotalSavedBudget(prev => prev + 1200);
+    confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
+  };
+
   const triggerWorkOrder = (id) => {
     setScheduledOrders(prev => ({ ...prev, [id]: true }));
     setTotalSavedBudget(prev => prev + 18500);
@@ -204,7 +221,7 @@ export default function Home() {
 
         <div className="header-actions">
           <button className="btn-danger" onClick={() => setIsEmergency(!isEmergency)}>
-            ⚡ Emergency Mode: {isEmergency ? 'ON' : 'OFF'}
+            🌩️ Storm Simulation Mode: {isEmergency ? 'ON' : 'OFF'}
           </button>
           <button className="btn-primary" onClick={() => setIsGovernorModalOpen(true)}>
             🤖 Ask AI City Governor
@@ -258,9 +275,9 @@ export default function Home() {
                 <div className="health-score-hero">
                   <div>
                     <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Current Sector Health Score</div>
-                    <div className="health-pill">
-                      <span>{selectedSector.healthScore}</span>
-                      <span style={{ fontSize: '1rem', color: 'var(--text-muted)' }}>/ 100</span>
+                    <div className="health-pill" style={{ background: (isEmergency && selectedSectorId === 'sec-18') ? 'var(--crimson)' : undefined, color: (isEmergency && selectedSectorId === 'sec-18') ? '#fff' : undefined }}>
+                      <span>{(isEmergency && selectedSectorId === 'sec-18') ? 20 : selectedSector.healthScore}</span>
+                      <span style={{ fontSize: '1rem', color: (isEmergency && selectedSectorId === 'sec-18') ? 'rgba(255,255,255,0.8)' : 'var(--text-muted)' }}>/ 100</span>
                     </div>
                   </div>
                   <div style={{ textAlign: 'right' }}>
@@ -273,6 +290,7 @@ export default function Home() {
                   selectedSectorId={selectedSectorId}
                   onSectorSelect={setSelectedSectorId}
                   userReports={userReports}
+                  isSimulationMode={isEmergency}
                 />
               </div>
 
@@ -282,10 +300,10 @@ export default function Home() {
                   <div className="card-title" style={{ marginBottom: '12px' }}>📊 Sector Metrics Breakdown</div>
                   <div className="metrics-mini-list">
                     <div className="metric-row"><span>🛣️ Road Quality</span><strong>{selectedSector.metrics.roadQuality}/100</strong></div>
-                    <div className="metric-row"><span>🧹 Cleanliness</span><strong>{selectedSector.metrics.cleanliness}/100</strong></div>
-                    <div className="metric-row"><span>🍃 Air Quality</span><strong>{selectedSector.metrics.airQuality}/100</strong></div>
                     <div className="metric-row"><span>🚗 Traffic Flow</span><strong>{selectedSector.metrics.traffic}/100</strong></div>
-                    <div className="metric-row"><span>💧 Water Main Integrity</span><strong>{selectedSector.metrics.waterLeakage}/100</strong></div>
+                    <div className="metric-row"><span>💧 Water Pressure</span><strong>{(isEmergency && selectedSectorId === 'sec-18') ? '7.8 Bar (BURST DANGER)' : selectedSector.metrics.waterPressure}</strong></div>
+                    <div className="metric-row"><span>⚡ Grid Load</span><strong>{(isEmergency && selectedSectorId === 'sec-18') ? '98% (OVERLOAD)' : selectedSector.metrics.gridLoad}</strong></div>
+                    <div className="metric-row"><span>🍃 Air Quality</span><strong>{selectedSector.metrics.airQuality}/100</strong></div>
                   </div>
                 </div>
 
@@ -309,6 +327,7 @@ export default function Home() {
             <CitizenPortal
               userReports={userReports}
               onNewReportSubmit={handleNewReportSubmit}
+              onReportUpvote={handleReportUpvote}
               rewardPoints={rewardPoints}
               userProfile={userProfile}
               onLoginSuccess={setUserProfile}
