@@ -19,7 +19,7 @@ export default function VoucherModal({ voucher, onClose }) {
           <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '14px' }}>{voucher.desc}</p>
 
           {/* Voucher Code Box */}
-          <div style={{ background: '#fff', border: '2px dashed var(--primary)', padding: '12px', borderRadius: '10px', marginBottom: '12px' }}>
+          <div style={{ background: 'var(--panel-bg)', border: '2px dashed var(--primary)', padding: '12px', borderRadius: '10px', marginBottom: '12px' }}>
             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', letterSpacing: '1px' }}>VOUCHER CODE</span>
             <strong style={{ fontSize: '1.4rem', color: 'var(--primary)', letterSpacing: '2px', fontFamily: 'monospace' }}>{voucher.code}</strong>
           </div>

@@ -80,7 +80,7 @@ export default function PredictiveSimulator({ onScheduleWorkOrder }) {
           <select
             value={selectedSector}
             onChange={(e) => setSelectedSector(e.target.value)}
-            style={{ width: '100%', background: '#fff', border: '1px solid var(--panel-border)', padding: '8px 10px', borderRadius: '8px', fontSize: '0.82rem', color: 'var(--text-main)' }}
+            style={{ width: '100%', background: 'var(--panel-bg)', border: '1px solid var(--panel-border)', padding: '8px 10px', borderRadius: '8px', fontSize: '0.82rem', color: 'var(--text-main)' }}
           >
             {CITY_SECTORS.map(sec => (
               <option key={sec.id} value={sec.id}>{sec.name.split(' ')[0]} {sec.name.split(' ')[1]}</option>
@@ -95,7 +95,7 @@ export default function PredictiveSimulator({ onScheduleWorkOrder }) {
           <select
             value={weatherCondition}
             onChange={(e) => setWeatherCondition(e.target.value)}
-            style={{ width: '100%', background: '#fff', border: '1px solid var(--panel-border)', padding: '8px 10px', borderRadius: '8px', fontSize: '0.82rem', color: 'var(--text-main)' }}
+            style={{ width: '100%', background: 'var(--panel-bg)', border: '1px solid var(--panel-border)', padding: '8px 10px', borderRadius: '8px', fontSize: '0.82rem', color: 'var(--text-main)' }}
           >
             <option value="Heavy Monsoon (150mm)">🌧️ Heavy Monsoon (150mm)</option>
             <option value="Severe Heatwave (42°C)">☀️ Severe Heatwave (42°C)</option>
@@ -124,7 +124,7 @@ export default function PredictiveSimulator({ onScheduleWorkOrder }) {
           <select
             value={trafficLoad}
             onChange={(e) => setTrafficLoad(e.target.value)}
-            style={{ width: '100%', background: '#fff', border: '1px solid var(--panel-border)', padding: '8px 10px', borderRadius: '8px', fontSize: '0.82rem', color: 'var(--text-main)' }}
+            style={{ width: '100%', background: 'var(--panel-bg)', border: '1px solid var(--panel-border)', padding: '8px 10px', borderRadius: '8px', fontSize: '0.82rem', color: 'var(--text-main)' }}
           >
             <option value="Heavy Truck & EV Fleet">🚛 Heavy Truck & EV Fleet</option>
             <option value="Peak Commuter Traffic">🚗 Peak Commuter Traffic</option>
@@ -158,7 +158,7 @@ export default function PredictiveSimulator({ onScheduleWorkOrder }) {
             📍 Location: <strong>{simulationResult.sectorName}</strong> | ⏳ Time Window: <strong>{simulationResult.timeframe}</strong>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', background: '#fff', padding: '12px', borderRadius: '8px', border: '1px solid var(--panel-border)', marginBottom: '12px', fontSize: '0.8rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', background: 'var(--panel-bg)', padding: '12px', borderRadius: '8px', border: '1px solid var(--panel-border)', marginBottom: '12px', fontSize: '0.8rem' }}>
             <div>💰 Fix Cost: <strong>{simulationResult.budget.cost}</strong></div>
             <div>🛡️ Saved: <strong>{simulationResult.budget.ROI}</strong></div>
             <div>🌱 Green Impact: <strong>{simulationResult.greenImpact.co2Saved}</strong></div>
