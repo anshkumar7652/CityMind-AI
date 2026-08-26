@@ -116,7 +116,7 @@ export default function AdminDashboard({ userReports = [], predictiveHazards = [
               const isRejected = currentStatus.includes('Rejected');
 
               return (
-                <div key={rep.id ? `${rep.id}-${idx}` : idx} style={{ background: '#fff', padding: '12px', borderRadius: '10px', border: '1px solid var(--panel-border)', borderLeft: `4px solid ${isRejected ? 'var(--crimson)' : isResolved ? 'var(--emerald)' : idx === 0 ? 'var(--crimson)' : 'var(--amber)'}`, boxShadow: 'var(--shadow-sm)' }}>
+                <div key={rep.id ? `${rep.id}-${idx}` : idx} style={{ background: 'var(--panel-bg)', padding: '12px', borderRadius: '10px', border: '1px solid var(--panel-border)', borderLeft: `4px solid ${isRejected ? 'var(--crimson)' : isResolved ? 'var(--emerald)' : idx === 0 ? 'var(--crimson)' : 'var(--amber)'}`, boxShadow: 'var(--shadow-sm)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
                     <strong style={{ fontSize: '0.9rem' }}>Priority #{idx + 1}: {rep.category}</strong>
                     <span style={{ fontSize: '0.75rem', fontWeight: '700', color: isResolved ? 'var(--emerald)' : isDispatched ? 'var(--primary)' : isRejected ? 'var(--crimson)' : 'var(--crimson)' }}>
@@ -205,7 +205,7 @@ export default function AdminDashboard({ userReports = [], predictiveHazards = [
             <div className="card-title" style={{ marginBottom: '12px' }}>📈 Monthly Resolution Analytics</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', textAlign: 'center' }}>
               {MONTHLY_ANALYTICS.map((m, idx) => (
-                <div key={idx} style={{ background: '#fff', padding: '10px 6px', borderRadius: '8px', border: '1px solid var(--panel-border)', boxShadow: 'var(--shadow-sm)' }}>
+                <div key={idx} style={{ background: 'var(--panel-bg)', padding: '10px 6px', borderRadius: '8px', border: '1px solid var(--panel-border)', boxShadow: 'var(--shadow-sm)' }}>
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{m.month}</div>
                   <div style={{ fontSize: '1.1rem', fontWeight: '800', color: 'var(--primary)' }}>{m.complaints}</div>
                   <div style={{ fontSize: '0.7rem', color: 'var(--emerald)' }}>{m.avgResolutionHours}h avg</div>
@@ -243,7 +243,7 @@ export default function AdminDashboard({ userReports = [], predictiveHazards = [
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
-              <div style={{ background: '#fff', border: '1px solid var(--panel-border)', padding: '12px', borderRadius: '8px', fontSize: '0.8rem' }}>
+              <div style={{ background: 'var(--panel-bg)', border: '1px solid var(--panel-border)', padding: '12px', borderRadius: '8px', fontSize: '0.8rem' }}>
                 <div style={{ color: 'var(--text-muted)', marginBottom: '4px' }}>🖼️ Reverse Image Search</div>
                 <strong style={{ fontSize: '0.9rem', color: 'var(--emerald)' }}>
                   {inspectedReport.aiAnalysis?.duplicateScore || '0.1% Stock Match'}
@@ -251,7 +251,7 @@ export default function AdminDashboard({ userReports = [], predictiveHazards = [
                 <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>Original user photograph confirmed</div>
               </div>
 
-              <div style={{ background: '#fff', border: '1px solid var(--panel-border)', padding: '12px', borderRadius: '8px', fontSize: '0.8rem' }}>
+              <div style={{ background: 'var(--panel-bg)', border: '1px solid var(--panel-border)', padding: '12px', borderRadius: '8px', fontSize: '0.8rem' }}>
                 <div style={{ color: 'var(--text-muted)', marginBottom: '4px' }}>🤖 Generative AI Detection</div>
                 <strong style={{ fontSize: '0.9rem', color: 'var(--emerald)' }}>
                   {inspectedReport.aiAnalysis?.aiGenProbability || '0.3% Synthetic'}
@@ -259,13 +259,13 @@ export default function AdminDashboard({ userReports = [], predictiveHazards = [
                 <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>Camera sensor noise pattern verified</div>
               </div>
 
-              <div style={{ background: '#fff', border: '1px solid var(--panel-border)', padding: '12px', borderRadius: '8px', fontSize: '0.8rem' }}>
+              <div style={{ background: 'var(--panel-bg)', border: '1px solid var(--panel-border)', padding: '12px', borderRadius: '8px', fontSize: '0.8rem' }}>
                 <div style={{ color: 'var(--text-muted)', marginBottom: '4px' }}>📍 EXIF Spatial Triangulation</div>
                 <strong style={{ fontSize: '0.9rem', color: 'var(--primary)' }}>GPS Coordinates Matched</strong>
                 <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>Cellular tower & GPS metadata aligned</div>
               </div>
 
-              <div style={{ background: '#fff', border: '1px solid var(--panel-border)', padding: '12px', borderRadius: '8px', fontSize: '0.8rem' }}>
+              <div style={{ background: 'var(--panel-bg)', border: '1px solid var(--panel-border)', padding: '12px', borderRadius: '8px', fontSize: '0.8rem' }}>
                 <div style={{ color: 'var(--text-muted)', marginBottom: '4px' }}>⚡ Auto Priority Allocation</div>
                 <strong style={{ fontSize: '0.9rem', color: 'var(--amber)' }}>Score: {inspectedReport.priorityScore || 85}/100</strong>
                 <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>High traffic impact multiplier applied</div>

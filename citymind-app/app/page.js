@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { flushSync } from 'react-dom';
 import dynamic from 'next/dynamic';
 import confetti from 'canvas-confetti';
 import { CITY_SECTORS, PREDICTIVE_HAZARDS, INITIAL_USER_REPORTS, GOVERNOR_BRIEFS } from '@/lib/data';
@@ -23,6 +24,21 @@ export default function Home() {
   const [isEmergency, setIsEmergency] = useState(false);
   const [isGovernorModalOpen, setIsGovernorModalOpen] = useState(false);
   const [governorBriefIndex, setGovernorBriefIndex] = useState(0);
+
+  const handleTabChange = (tabId) => {
+    if (!document.startViewTransition) {
+      setActiveTab(tabId);
+      return;
+    }
+    const transition = document.startViewTransition(() => {
+      flushSync(() => {
+        setActiveTab(tabId);
+      });
+    });
+    
+    // Catch the abort rejection to prevent the Next.js unhandled error overlay
+    transition.finished.catch(() => {});
+  };
 
   // User State & Reports State
   const [userProfile, setUserProfile] = useState(null);
@@ -202,19 +218,19 @@ export default function Home() {
 
         {/* Navigation Tabs */}
         <nav className="nav-tabs">
-          <button className={`nav-tab-btn ${activeTab === 'tab-overview' ? 'active' : ''}`} onClick={() => setActiveTab('tab-overview')}>
+          <button className={`nav-tab-btn ${activeTab === 'tab-overview' ? 'active' : ''}`} onClick={() => handleTabChange('tab-overview')}>
             🌐 Overview & Twin Map
           </button>
-          <button className={`nav-tab-btn ${activeTab === 'tab-citizen' ? 'active' : ''}`} onClick={() => setActiveTab('tab-citizen')}>
+          <button className={`nav-tab-btn ${activeTab === 'tab-citizen' ? 'active' : ''}`} onClick={() => handleTabChange('tab-citizen')}>
             👤 Citizen Features
           </button>
-          <button className={`nav-tab-btn ${activeTab === 'tab-admin' ? 'active' : ''}`} onClick={() => setActiveTab('tab-admin')}>
+          <button className={`nav-tab-btn ${activeTab === 'tab-admin' ? 'active' : ''}`} onClick={() => handleTabChange('tab-admin')}>
             🏛️ Admin Dashboard
           </button>
-          <button className={`nav-tab-btn ${activeTab === 'tab-predictive' ? 'active' : ''}`} onClick={() => setActiveTab('tab-predictive')}>
+          <button className={`nav-tab-btn ${activeTab === 'tab-predictive' ? 'active' : ''}`} onClick={() => handleTabChange('tab-predictive')}>
             🔮 Predictive Engine
           </button>
-          <button className={`nav-tab-btn ${activeTab === 'tab-budget-green' ? 'active' : ''}`} onClick={() => setActiveTab('tab-budget-green')}>
+          <button className={`nav-tab-btn ${activeTab === 'tab-budget-green' ? 'active' : ''}`} onClick={() => handleTabChange('tab-budget-green')}>
             🌱 Budget & Green Impact
           </button>
         </nav>
@@ -428,7 +444,7 @@ export default function Home() {
               </div>
 
               {/* Carbon Credit Redemption Simulator */}
-              <div style={{ background: '#fff', border: '1px solid var(--panel-border)', borderRadius: '12px', padding: '18px', boxShadow: 'var(--shadow-sm)' }}>
+              <div style={{ background: 'var(--panel-bg)', border: '1px solid var(--panel-border)', borderRadius: '12px', padding: '18px', boxShadow: 'var(--shadow-sm)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                   <h3 style={{ fontSize: '1rem', fontWeight: '700' }}>💳 Redeem Citizen Carbon Credits</h3>
                   <span style={{ fontSize: '0.85rem', color: 'var(--emerald)', fontWeight: '700' }}>Balance: {rewardPoints} Carbon Credits</span>
@@ -522,7 +538,7 @@ export default function Home() {
 
                   {/* If message includes structured prediction details */}
                   {msg.prediction && (
-                    <div style={{ marginTop: '10px', background: '#fff', border: '1px solid var(--panel-border)', borderLeft: '4px solid var(--crimson)', padding: '10px', borderRadius: '8px' }}>
+                    <div style={{ marginTop: '10px', background: 'var(--panel-bg)', border: '1px solid var(--panel-border)', borderLeft: '4px solid var(--crimson)', padding: '10px', borderRadius: '8px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
                         <strong style={{ fontSize: '0.85rem', color: 'var(--crimson)' }}>🚨 {msg.prediction.issue}</strong>
                         <span style={{ background: 'var(--crimson-light)', color: 'var(--crimson)', fontWeight: '700', fontSize: '0.75rem', padding: '2px 6px', borderRadius: '4px' }}>
@@ -555,7 +571,7 @@ export default function Home() {
                 value={queryInput}
                 onChange={(e) => setQueryInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSendGovernorQuery()}
-                style={{ flex: 1, background: '#fff', border: '1px solid var(--panel-border)', color: 'var(--text-main)', padding: '10px', borderRadius: '8px' }}
+                style={{ flex: 1, background: 'var(--panel-bg)', border: '1px solid var(--panel-border)', color: 'var(--text-main)', padding: '10px', borderRadius: '8px' }}
               />
               <button className="btn-primary" onClick={() => handleSendGovernorQuery()}>Send</button>
             </div>

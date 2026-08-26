@@ -353,7 +353,7 @@ export default function CitizenPortal({ userReports, onNewReportSubmit, onReport
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                style={{ width: '100%', background: '#fff', border: '1px solid var(--panel-border)', color: 'var(--text-main)', padding: '10px', borderRadius: '8px', fontSize: '0.85rem' }}
+                style={{ width: '100%', background: 'var(--bg-light)', border: '1px solid var(--panel-border)', color: 'var(--text-main)', padding: '10px', borderRadius: '8px', fontSize: '0.85rem' }}
               >
                 <option value="Pothole / Road Damage">Pothole / Road Damage</option>
                 <option value="Water Main Leak">Water Main Leak / Burst</option>
@@ -371,7 +371,7 @@ export default function CitizenPortal({ userReports, onNewReportSubmit, onReport
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
-                style={{ width: '100%', background: '#fff', border: '1px solid var(--panel-border)', color: 'var(--text-main)', padding: '10px', borderRadius: '8px', fontSize: '0.85rem' }}
+                style={{ width: '100%', background: 'var(--bg-light)', border: '1px solid var(--panel-border)', color: 'var(--text-main)', padding: '10px', borderRadius: '8px', fontSize: '0.85rem' }}
               />
             </div>
 
@@ -404,6 +404,9 @@ export default function CitizenPortal({ userReports, onNewReportSubmit, onReport
             {/* Upload Photo Button & Preview */}
             <div>
               <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Upload Issue Photo</label>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-faint)', marginBottom: '8px' }}>
+                💡 Tip: Uploading an original photo will automatically extract the GPS coordinates of the incident!
+              </div>
               <input
                 type="file"
                 accept="image/*"
@@ -461,9 +464,9 @@ export default function CitizenPortal({ userReports, onNewReportSubmit, onReport
             ))}
           </div>
 
-          <div style={{ height: '400px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div className="scroll-fade-y" style={{ height: '400px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px', paddingBottom: '20px' }}>
             {filteredReports.map((rep, idx) => (
-              <div key={rep.id ? `${rep.id}-${idx}` : idx} style={{ background: '#fff', padding: '12px', borderRadius: '10px', border: '1px solid var(--panel-border)', boxShadow: 'var(--shadow-sm)' }}>
+              <div key={rep.id ? `${rep.id}-${idx}` : idx} className="scroll-animate-card" style={{ background: 'var(--panel-bg)', padding: '12px', borderRadius: '10px', border: '1px solid var(--panel-border)', boxShadow: 'var(--shadow-sm)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
                   <strong style={{ fontSize: '0.88rem', color: 'var(--primary)' }}>{rep.id} - {rep.category}</strong>
                   <span style={{ fontSize: '0.72rem', fontWeight: '700', padding: '2px 8px', borderRadius: '4px', background: rep.status.includes('Rejected') ? 'var(--crimson-light)' : 'var(--emerald-light)', color: rep.status.includes('Rejected') ? 'var(--crimson)' : 'var(--emerald)' }}>
@@ -502,7 +505,7 @@ export default function CitizenPortal({ userReports, onNewReportSubmit, onReport
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
           {challenges.map(chal => (
-            <div key={chal.id} style={{ background: '#fff', padding: '16px', borderRadius: '12px', border: '1px solid var(--panel-border)', boxShadow: 'var(--shadow-sm)' }}>
+            <div key={chal.id} style={{ background: 'var(--panel-bg)', padding: '16px', borderRadius: '12px', border: '1px solid var(--panel-border)', boxShadow: 'var(--shadow-sm)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
                 <strong style={{ fontSize: '0.95rem' }}>{chal.title}</strong>
                 <span style={{ fontSize: '0.75rem', color: 'var(--emerald)', fontWeight: '700' }}>
@@ -551,7 +554,7 @@ export default function CitizenPortal({ userReports, onNewReportSubmit, onReport
                     placeholder="Aarav Sharma"
                     value={authForm.name}
                     onChange={(e) => setAuthForm({ ...authForm, name: e.target.value })}
-                    style={{ width: '100%', background: '#fff', border: '1px solid var(--panel-border)', color: 'var(--text-main)', padding: '10px', borderRadius: '8px' }}
+                    style={{ width: '100%', background: 'var(--panel-bg)', border: '1px solid var(--panel-border)', color: 'var(--text-main)', padding: '10px', borderRadius: '8px' }}
                   />
                 </div>
               )}
@@ -564,7 +567,7 @@ export default function CitizenPortal({ userReports, onNewReportSubmit, onReport
                   placeholder="aarav@citymind.ai"
                   value={authForm.email}
                   onChange={(e) => setAuthForm({ ...authForm, email: e.target.value })}
-                  style={{ width: '100%', background: '#fff', border: '1px solid var(--panel-border)', color: 'var(--text-main)', padding: '10px', borderRadius: '8px' }}
+                  style={{ width: '100%', background: 'var(--panel-bg)', border: '1px solid var(--panel-border)', color: 'var(--text-main)', padding: '10px', borderRadius: '8px' }}
                 />
               </div>
 
@@ -576,7 +579,7 @@ export default function CitizenPortal({ userReports, onNewReportSubmit, onReport
                   placeholder="••••••••"
                   value={authForm.password}
                   onChange={(e) => setAuthForm({ ...authForm, password: e.target.value })}
-                  style={{ width: '100%', background: '#fff', border: '1px solid var(--panel-border)', color: 'var(--text-main)', padding: '10px', borderRadius: '8px' }}
+                  style={{ width: '100%', background: 'var(--panel-bg)', border: '1px solid var(--panel-border)', color: 'var(--text-main)', padding: '10px', borderRadius: '8px' }}
                 />
               </div>
 
