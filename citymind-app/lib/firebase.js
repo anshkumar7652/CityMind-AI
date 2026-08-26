@@ -3,11 +3,20 @@ import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
+let rawBucket = (process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "citymind-ai.appspot.com")
+  .replace(/^gs:\/\//, '')
+  .trim();
+
+// Automatically correct misconfigured .firebasestorage.app domain to standard .appspot.com
+if (rawBucket.endsWith('.firebasestorage.app')) {
+  rawBucket = rawBucket.replace(/\.firebasestorage\.app$/, '.appspot.com');
+}
+
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyDemoKeyForCityMindApp12345",
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "citymind-ai.firebaseapp.com",
   projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "citymind-ai",
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "citymind-ai.appspot.com",
+  storageBucket: rawBucket,
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "123456789012",
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:123456789012:web:abcdef123456"
 };

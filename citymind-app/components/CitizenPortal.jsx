@@ -16,6 +16,7 @@ import {
 import { ref, uploadString, getDownloadURL } from 'firebase/storage';
 import { auth, db, storage, isFirebaseConfigured } from '@/lib/firebase';
 import { COMMUNITY_CHALLENGES } from '@/lib/data';
+import { extractGpsFromImage } from '@/lib/exif-gps';
 
 export default function CitizenPortal({ userReports, onNewReportSubmit, rewardPoints, userProfile, onLoginSuccess, onClaimCarbonCredits }) {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
