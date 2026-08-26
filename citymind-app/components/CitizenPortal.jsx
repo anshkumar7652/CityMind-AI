@@ -93,11 +93,43 @@ export default function CitizenPortal({ userReports, onNewReportSubmit, rewardPo
   const handlePhotoUpload = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPhotoPreview(reader.result);
-      };
-      reader.readAsDataURL(file);
+      // Compress image for fast rendering and reliable API submission fallback
+      try {
+        const compressedBase64 = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            const img = new Image();
+            img.onload = () => {
+              const canvas = document.createElement('canvas');
+              let width = img.width;
+              let height = img.height;
+              const maxDim = 800;
+              if (width > maxDim || height > maxDim) {
+                if (width > height) {
+                  height = Math.round((height * maxDim) / width);
+                  width = maxDim;
+                } else {
+                  width = Math.round((width * maxDim) / height);
+                  height = maxDim;
+                }
+              }
+              canvas.width = width;
+              canvas.height = height;
+              const ctx = canvas.getContext('2d');
+              ctx.drawImage(img, 0, 0, width, height);
+              resolve(canvas.toDataURL('image/jpeg', 0.7));
+            };
+            img.onerror = () => resolve(event.target.result);
+            img.src = event.target.result;
+          };
+          reader.readAsDataURL(file);
+        });
+        setPhotoPreview(compressedBase64);
+      } catch {
+        const reader = new FileReader();
+        reader.onloadend = () => setPhotoPreview(reader.result);
+        reader.readAsDataURL(file);
+      }
 
       // Attempt EXIF GPS extraction from the raw File object
       try {
@@ -132,10 +164,15 @@ export default function CitizenPortal({ userReports, onNewReportSubmit, rewardPo
       if (isFirebaseConfigured && photoPreview && photoPreview.startsWith('data:image')) {
         try {
           const storageRef = ref(storage, `reports/issue-${Date.now()}.jpg`);
-          await uploadString(storageRef, photoPreview, 'data_url');
-          finalPhotoUrl = await getDownloadURL(storageRef);
+          await Promise.race([
+            (async () => {
+              await uploadString(storageRef, photoPreview, 'data_url');
+              finalPhotoUrl = await getDownloadURL(storageRef);
+            })(),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Storage upload timeout')), 3000))
+          ]);
         } catch (storageErr) {
-          console.warn("Firebase Storage upload notice (using data URL):", storageErr.message);
+          console.warn("Firebase Storage upload notice (using data URL fallback):", storageErr.message);
         }
       }
 
@@ -155,12 +192,17 @@ export default function CitizenPortal({ userReports, onNewReportSubmit, rewardPo
       const verifiedReport = data.report;
 
       try {
-        await addDoc(collection(db, "reports"), {
-          ...verifiedReport,
-          createdAt: serverTimestamp()
-        });
+        if (isFirebaseConfigured) {
+          await Promise.race([
+            addDoc(collection(db, "reports"), {
+              ...verifiedReport,
+              createdAt: serverTimestamp()
+            }),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Firestore sync timeout')), 2500))
+          ]);
+        }
       } catch (dbErr) {
-        console.warn("Firestore client sync notice:", dbErr);
+        console.warn("Firestore client sync notice:", dbErr.message);
       }
 
       onNewReportSubmit(verifiedReport);
@@ -396,8 +438,8 @@ export default function CitizenPortal({ userReports, onNewReportSubmit, rewardPo
           </div>
 
           <div style={{ height: '400px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {filteredReports.map(rep => (
-              <div key={rep.id} style={{ background: '#fff', padding: '12px', borderRadius: '10px', border: '1px solid var(--panel-border)', boxShadow: 'var(--shadow-sm)' }}>
+            {filteredReports.map((rep, idx) => (
+              <div key={rep.id ? `${rep.id}-${idx}` : idx} style={{ background: '#fff', padding: '12px', borderRadius: '10px', border: '1px solid var(--panel-border)', boxShadow: 'var(--shadow-sm)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
                   <strong style={{ fontSize: '0.88rem', color: 'var(--primary)' }}>{rep.id} - {rep.category}</strong>
                   <span style={{ fontSize: '0.72rem', fontWeight: '700', padding: '2px 8px', borderRadius: '4px', background: rep.status.includes('Rejected') ? 'var(--crimson-light)' : 'var(--emerald-light)', color: rep.status.includes('Rejected') ? 'var(--crimson)' : 'var(--emerald)' }}>

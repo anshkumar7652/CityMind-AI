@@ -116,7 +116,7 @@ export default function AdminDashboard({ userReports = [], predictiveHazards = [
               const isRejected = currentStatus.includes('Rejected');
 
               return (
-                <div key={rep.id} style={{ background: '#fff', padding: '12px', borderRadius: '10px', border: '1px solid var(--panel-border)', borderLeft: `4px solid ${isRejected ? 'var(--crimson)' : isResolved ? 'var(--emerald)' : idx === 0 ? 'var(--crimson)' : 'var(--amber)'}`, boxShadow: 'var(--shadow-sm)' }}>
+                <div key={rep.id ? `${rep.id}-${idx}` : idx} style={{ background: '#fff', padding: '12px', borderRadius: '10px', border: '1px solid var(--panel-border)', borderLeft: `4px solid ${isRejected ? 'var(--crimson)' : isResolved ? 'var(--emerald)' : idx === 0 ? 'var(--crimson)' : 'var(--amber)'}`, boxShadow: 'var(--shadow-sm)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
                     <strong style={{ fontSize: '0.9rem' }}>Priority #{idx + 1}: {rep.category}</strong>
                     <span style={{ fontSize: '0.75rem', fontWeight: '700', color: isResolved ? 'var(--emerald)' : isDispatched ? 'var(--primary)' : isRejected ? 'var(--crimson)' : 'var(--crimson)' }}>
