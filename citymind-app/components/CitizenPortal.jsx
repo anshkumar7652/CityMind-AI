@@ -162,18 +162,10 @@ export default function CitizenPortal({ userReports, onNewReportSubmit, onReport
       let finalPhotoUrl = photoPreview;
 
       if (isFirebaseConfigured && photoPreview && photoPreview.startsWith('data:image')) {
-        try {
-          const storageRef = ref(storage, `reports/issue-${Date.now()}.jpg`);
-          await Promise.race([
-            (async () => {
-              await uploadString(storageRef, photoPreview, 'data_url');
-              finalPhotoUrl = await getDownloadURL(storageRef);
-            })(),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('Storage upload timeout')), 3000))
-          ]);
-        } catch (storageErr) {
-          console.warn("Firebase Storage upload notice (using data URL fallback):", storageErr.message);
-        }
+        // Option 2: Firebase Storage bypassed due to Blaze plan requirement.
+        // We will directly pass the compressed base64 string (photoPreview) to Firestore.
+        // This is safe because the image is compressed heavily and easily fits in a Firestore document (1MB limit).
+        console.log("Saving compressed photo directly to Firestore database.");
       }
 
       const response = await fetch('/api/city-data', {
