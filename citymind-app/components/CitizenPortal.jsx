@@ -30,6 +30,7 @@ export default function CitizenPortal({ userReports, onNewReportSubmit, rewardPo
   const [description, setDescription] = useState('');
   const [photoPreview, setPhotoPreview] = useState(null);
   const [gpsLocation, setGpsLocation] = useState({ lat: 28.6280, lng: 77.3649, address: 'Sector 62, Main Gate 3 (28.6280, 77.3649)' });
+  const [gpsSource, setGpsSource] = useState(null); // 'exif' | 'browser' | null
   const [isGettingGps, setIsGettingGps] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [lastVerifiedReport, setLastVerifiedReport] = useState(null);
@@ -73,20 +74,23 @@ export default function CitizenPortal({ userReports, onNewReportSubmit, rewardPo
             lng: pos.coords.longitude.toFixed(4),
             address: `Live GPS: (${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)})`
           });
+          setGpsSource('browser');
           setIsGettingGps(false);
         },
         () => {
           setGpsLocation({ lat: 28.6280, lng: 77.3649, address: 'Sector 62, Main Gate 3 (GPS Triangulated)' });
+          setGpsSource(null);
           setIsGettingGps(false);
         }
       );
     } else {
       setGpsLocation({ lat: 28.6280, lng: 77.3649, address: 'Sector 62, Main Gate 3 (GPS Triangulated)' });
+      setGpsSource(null);
       setIsGettingGps(false);
     }
   };
 
-  const handlePhotoUpload = (e) => {
+  const handlePhotoUpload = async (e) => {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
@@ -94,6 +98,22 @@ export default function CitizenPortal({ userReports, onNewReportSubmit, rewardPo
         setPhotoPreview(reader.result);
       };
       reader.readAsDataURL(file);
+
+      // Attempt EXIF GPS extraction from the raw File object
+      try {
+        const coords = await extractGpsFromImage(file);
+        if (coords) {
+          setGpsLocation({
+            lat: coords.latitude.toFixed(4),
+            lng: coords.longitude.toFixed(4),
+            address: `📍 Image GPS: (${coords.latitude.toFixed(4)}, ${coords.longitude.toFixed(4)})`
+          });
+          setGpsSource('exif');
+        }
+        // If no coords found, keep existing location — do not overwrite
+      } catch {
+        // Silently fall back — do not disrupt existing flow
+      }
     }
   };
 
@@ -148,6 +168,7 @@ export default function CitizenPortal({ userReports, onNewReportSubmit, rewardPo
       setSubmitSuccess(true);
       setDescription('');
       setPhotoPreview(null);
+      setGpsSource(null);
     } catch (err) {
       console.error("Backend submit error:", err);
     } finally {
@@ -302,6 +323,16 @@ export default function CitizenPortal({ userReports, onNewReportSubmit, rewardPo
                   {isGettingGps ? 'Locating...' : '📍 Fetch GPS'}
                 </button>
               </div>
+              {gpsSource === 'exif' && (
+                <div style={{ fontSize: '0.78rem', color: 'var(--emerald)', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  📍 Location detected from image metadata — you can override with &quot;Fetch GPS&quot;
+                </div>
+              )}
+              {gpsSource === null && photoPreview && (
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                  No GPS location found in image. Use &quot;Fetch GPS&quot; or submit with default location.
+                </div>
+              )}
             </div>
 
             {/* Upload Photo Button & Preview */}

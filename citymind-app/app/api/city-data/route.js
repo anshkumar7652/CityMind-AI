@@ -81,7 +81,7 @@ export async function POST(request) {
     if (categoryName.includes('Light') || categoryName.includes('Traffic')) assignedDept = 'Traffic Control Bureau';
 
     const aiVerdict = {
-      id: `CMP-${Math.floor(1000 + Math.random() * 9000)}`,
+      id: `CMP-${Date.now().toString().slice(-4)}${Math.floor(10 + Math.random() * 90)}`,
       user: body.user || 'Aarav Sharma',
       userScore: 96,
       trustBadge: 'Gold Verified Citizen',
