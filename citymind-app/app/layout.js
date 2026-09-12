@@ -1,9 +1,11 @@
-import { Geist, Inter, JetBrains_Mono } from "next/font/google";
+import { DM_Serif_Display, Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-const geist = Geist({
-  variable: "--font-brand",
+const dmSerif = DM_Serif_Display({
+  weight: "400",
+  style: ["normal", "italic"],
   subsets: ["latin"],
+  variable: "--font-serif",
 });
 
 const inter = Inter({
@@ -17,13 +19,13 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata = {
-  title: "CityMind-AI | Next-Gen Municipal Dashboard",
-  description: "Advanced Digital Twin Map and Citizen Portal",
+  title: "CityMind AI — Sustainable Smart City Intelligence & Digital Twin",
+  description: "Predictive municipal intelligence, real-time digital twin simulations, and civic ecosystem orchestration for future-ready sustainable cities.",
 };
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${geist.variable} ${inter.variable} ${jetbrainsMono.variable} dark`} data-theme="aurora" suppressHydrationWarning>
+    <html lang="en" className={`${dmSerif.variable} ${inter.variable} ${jetbrainsMono.variable}`} suppressHydrationWarning>
       <body>{children}</body>
     </html>
   );

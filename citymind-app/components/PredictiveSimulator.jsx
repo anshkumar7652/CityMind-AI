@@ -59,28 +59,28 @@ export default function PredictiveSimulator({ onScheduleWorkOrder }) {
   };
 
   return (
-    <div className="glass-card" style={{ marginTop: '24px' }}>
+    <div className="editorial-card" style={{ marginTop: '24px' }}>
       <div className="card-header">
-        <div className="card-title">🔬 Interactive "What-If" AI Future Problem Simulator</div>
-        <span style={{ background: 'var(--primary-light)', color: 'var(--primary)', fontSize: '0.75rem', fontWeight: '700', padding: '4px 10px', borderRadius: '6px' }}>
-          NEURAL PREDICTIVE MATRIX
+        <div className="card-title" style={{ fontSize: '1.25rem' }}>Interactive Infrastructure Risk Simulator</div>
+        <span style={{ background: 'var(--forest-100)', color: 'var(--forest-800)', fontSize: '0.72rem', fontWeight: '700', padding: '4px 10px', borderRadius: '999px' }}>
+          NEURAL MATRIX
         </span>
       </div>
 
-      <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '16px' }}>
+      <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '18px', lineHeight: '1.5' }}>
         Simulate custom environmental stress factors (weather intensity, asset aging, and vehicle load) to predict future urban infrastructure risks before they occur.
       </p>
 
       {/* Simulator Inputs Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px', marginBottom: '16px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px', marginBottom: '18px' }}>
         <div>
-          <label style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: '600', display: 'block', marginBottom: '4px' }}>
+          <label style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: '600', display: 'block', marginBottom: '6px' }}>
             Target Sector
           </label>
           <select
             value={selectedSector}
             onChange={(e) => setSelectedSector(e.target.value)}
-            style={{ width: '100%', background: 'var(--panel-bg)', border: '1px solid var(--panel-border)', padding: '8px 10px', borderRadius: '8px', fontSize: '0.82rem', color: 'var(--text-main)' }}
+            style={{ width: '100%', background: 'var(--bg-cream-alt)', border: '1px solid var(--border-cream)', padding: '9px 10px', borderRadius: '8px', fontSize: '0.82rem', color: 'var(--text-dark)' }}
           >
             {CITY_SECTORS.map(sec => (
               <option key={sec.id} value={sec.id}>{sec.name.split(' ')[0]} {sec.name.split(' ')[1]}</option>
@@ -89,13 +89,13 @@ export default function PredictiveSimulator({ onScheduleWorkOrder }) {
         </div>
 
         <div>
-          <label style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: '600', display: 'block', marginBottom: '4px' }}>
+          <label style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: '600', display: 'block', marginBottom: '6px' }}>
             Weather Forecast
           </label>
           <select
             value={weatherCondition}
             onChange={(e) => setWeatherCondition(e.target.value)}
-            style={{ width: '100%', background: 'var(--panel-bg)', border: '1px solid var(--panel-border)', padding: '8px 10px', borderRadius: '8px', fontSize: '0.82rem', color: 'var(--text-main)' }}
+            style={{ width: '100%', background: 'var(--bg-cream-alt)', border: '1px solid var(--border-cream)', padding: '9px 10px', borderRadius: '8px', fontSize: '0.82rem', color: 'var(--text-dark)' }}
           >
             <option value="Heavy Monsoon (150mm)">🌧️ Heavy Monsoon (150mm)</option>
             <option value="Severe Heatwave (42°C)">☀️ Severe Heatwave (42°C)</option>
@@ -104,8 +104,8 @@ export default function PredictiveSimulator({ onScheduleWorkOrder }) {
         </div>
 
         <div>
-          <label style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: '600', display: 'block', marginBottom: '4px' }}>
-            Asset Age: <strong>{assetAgeYears} Years</strong>
+          <label style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: '600', display: 'block', marginBottom: '6px' }}>
+            Asset Age: <strong style={{ color: 'var(--forest-800)' }}>{assetAgeYears} Years</strong>
           </label>
           <input
             type="range"
@@ -113,18 +113,18 @@ export default function PredictiveSimulator({ onScheduleWorkOrder }) {
             max={30}
             value={assetAgeYears}
             onChange={(e) => setAssetAgeYears(Number(e.target.value))}
-            style={{ width: '100%', accentColor: 'var(--primary)', cursor: 'pointer', marginTop: '6px' }}
+            style={{ width: '100%', accentColor: 'var(--forest-800)', cursor: 'pointer', marginTop: '8px' }}
           />
         </div>
 
         <div>
-          <label style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: '600', display: 'block', marginBottom: '4px' }}>
+          <label style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: '600', display: 'block', marginBottom: '6px' }}>
             Traffic & Strain Load
           </label>
           <select
             value={trafficLoad}
             onChange={(e) => setTrafficLoad(e.target.value)}
-            style={{ width: '100%', background: 'var(--panel-bg)', border: '1px solid var(--panel-border)', padding: '8px 10px', borderRadius: '8px', fontSize: '0.82rem', color: 'var(--text-main)' }}
+            style={{ width: '100%', background: 'var(--bg-cream-alt)', border: '1px solid var(--border-cream)', padding: '9px 10px', borderRadius: '8px', fontSize: '0.82rem', color: 'var(--text-dark)' }}
           >
             <option value="Heavy Truck & EV Fleet">🚛 Heavy Truck & EV Fleet</option>
             <option value="Peak Commuter Traffic">🚗 Peak Commuter Traffic</option>
@@ -137,44 +137,51 @@ export default function PredictiveSimulator({ onScheduleWorkOrder }) {
         onClick={handleRunSimulation}
         disabled={isSimulating}
         className="btn-primary"
-        style={{ width: '100%', padding: '10px', fontSize: '0.88rem' }}
+        style={{ width: '100%', padding: '11px', fontSize: '0.86rem' }}
       >
-        {isSimulating ? '🔮 Running AI Neural Simulation...' : '🔮 Run AI Predictive Future Simulation'}
+        {isSimulating ? 'Running Neural Forecast Model...' : '🔮 Run Predictive Simulation Model'}
       </button>
 
       {/* Simulation Result Output Card */}
       {simulationResult && (
-        <div style={{ marginTop: '18px', background: 'var(--bg-subtle)', border: '1px solid var(--panel-border)', borderLeft: `5px solid ${simulationResult.probability > 75 ? 'var(--crimson)' : 'var(--amber)'}`, borderRadius: '12px', padding: '16px' }}>
+        <div style={{ marginTop: '20px', background: 'var(--bg-cream-alt)', border: '1px solid var(--border-cream)', borderLeft: `4px solid ${simulationResult.probability > 75 ? 'var(--crimson)' : 'var(--amber)'}`, borderRadius: '10px', padding: '18px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <h4 style={{ fontSize: '1rem', fontWeight: '700', color: 'var(--text-main)' }}>
-              🚨 AI Predicted Problem: {simulationResult.issue}
+            <h4 style={{ fontSize: '1.05rem', fontWeight: '700', color: 'var(--text-dark)', margin: 0 }}>
+              Forecasted Issue: {simulationResult.issue}
             </h4>
-            <span style={{ background: simulationResult.probability > 75 ? 'var(--crimson-light)' : 'var(--amber-light)', color: simulationResult.probability > 75 ? 'var(--crimson)' : 'var(--amber)', fontWeight: '800', fontSize: '0.82rem', padding: '4px 10px', borderRadius: '6px' }}>
+            <span style={{ 
+              background: simulationResult.probability > 75 ? '#FEE2E2' : '#FEF3C7', 
+              color: simulationResult.probability > 75 ? 'var(--crimson)' : '#92400E', 
+              fontWeight: '700', 
+              fontSize: '0.78rem', 
+              padding: '4px 10px', 
+              borderRadius: '999px' 
+            }}>
               {simulationResult.probability}% FAILURE PROBABILITY
             </span>
           </div>
 
-          <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '10px' }}>
-            📍 Location: <strong>{simulationResult.sectorName}</strong> | ⏳ Time Window: <strong>{simulationResult.timeframe}</strong>
+          <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '12px' }}>
+            📍 Location: <strong style={{ color: 'var(--text-dark)' }}>{simulationResult.sectorName}</strong> | ⏳ Time Window: <strong style={{ color: 'var(--text-dark)' }}>{simulationResult.timeframe}</strong>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', background: 'var(--panel-bg)', padding: '12px', borderRadius: '8px', border: '1px solid var(--panel-border)', marginBottom: '12px', fontSize: '0.8rem' }}>
-            <div>💰 Fix Cost: <strong>{simulationResult.budget.cost}</strong></div>
-            <div>🛡️ Saved: <strong>{simulationResult.budget.ROI}</strong></div>
-            <div>🌱 Green Impact: <strong>{simulationResult.greenImpact.co2Saved}</strong></div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', background: '#FFFFFF', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-cream)', marginBottom: '14px', fontSize: '0.82rem' }}>
+            <div>Est Cost: <strong style={{ color: 'var(--text-dark)' }}>{simulationResult.budget.cost}</strong></div>
+            <div>Prevented Damage: <strong style={{ color: 'var(--forest-700)' }}>{simulationResult.budget.ROI}</strong></div>
+            <div>CO₂ Offset: <strong style={{ color: 'var(--forest-700)' }}>{simulationResult.greenImpact.co2Saved}</strong></div>
           </div>
 
-          <p style={{ fontSize: '0.82rem', color: 'var(--emerald)', fontWeight: '600', marginBottom: '12px' }}>
-            🤖 AI Directive: {simulationResult.recommendation}
+          <p style={{ fontSize: '0.82rem', color: 'var(--forest-800)', fontWeight: '600', marginBottom: '14px' }}>
+            Directive: {simulationResult.recommendation}
           </p>
 
           <button
             onClick={handleScheduleSimulatedOrder}
             disabled={isScheduled}
             className="btn-primary"
-            style={{ width: '100%', padding: '8px', fontSize: '0.82rem', background: isScheduled ? '#10b981' : undefined }}
+            style={{ width: '100%', padding: '9px', fontSize: '0.82rem', background: isScheduled ? 'var(--forest-700)' : undefined }}
           >
-            {isScheduled ? '✓ Proactive Maintenance Scheduled to Prevent Failure' : '⚡ Schedule Preventative Maintenance Work Order Now'}
+            {isScheduled ? '✓ Preventative Maintenance Scheduled' : '⚡ Schedule Preventative Work Order Now'}
           </button>
         </div>
       )}
