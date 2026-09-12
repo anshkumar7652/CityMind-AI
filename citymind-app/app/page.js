@@ -1,588 +1,364 @@
-'use client';
+import Link from 'next/link';
 
-import { useState, useEffect } from 'react';
-import { flushSync } from 'react-dom';
-import dynamic from 'next/dynamic';
-import confetti from 'canvas-confetti';
-import { CITY_SECTORS, PREDICTIVE_HAZARDS, INITIAL_USER_REPORTS, GOVERNOR_BRIEFS } from '@/lib/data';
-import CitizenPortal from '@/components/CitizenPortal';
-import AdminDashboard from '@/components/AdminDashboard';
-import PredictiveSimulator from '@/components/PredictiveSimulator';
-import VoucherModal from '@/components/VoucherModal';
-import { collection, onSnapshot, query } from 'firebase/firestore';
-import { db, isFirebaseConfigured } from '@/lib/firebase';
+export const metadata = {
+  title: "CityMind AI — Sustainable Smart City Intelligence & Digital Twin",
+  description: "Predictive municipal intelligence, real-time digital twin simulations, and citizen-governed ecological intelligence for future-ready sustainable cities.",
+};
 
-// Dynamically import Leaflet map for SSR safety
-const DigitalTwinMap = dynamic(() => import('@/components/DigitalTwinMap'), {
-  ssr: false,
-  loading: () => <div style={{ height: '420px', background: 'var(--bg-subtle)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>Loading Digital Twin Interactive Map...</div>
-});
-
-export default function Home() {
-  const [activeTab, setActiveTab] = useState('tab-overview');
-  const [selectedSectorId, setSelectedSectorId] = useState('sec-62');
-  const [isEmergency, setIsEmergency] = useState(false);
-  const [isGovernorModalOpen, setIsGovernorModalOpen] = useState(false);
-  const [governorBriefIndex, setGovernorBriefIndex] = useState(0);
-
-  const handleTabChange = (tabId) => {
-    if (!document.startViewTransition) {
-      setActiveTab(tabId);
-      return;
-    }
-    const transition = document.startViewTransition(() => {
-      flushSync(() => {
-        setActiveTab(tabId);
-      });
-    });
-    
-    // Catch the abort rejection to prevent the Next.js unhandled error overlay
-    transition.finished.catch(() => {});
-  };
-
-  // User State & Reports State
-  const [userProfile, setUserProfile] = useState(null);
-  const [rewardPoints, setRewardPoints] = useState(450);
-  const [userReports, setUserReports] = useState(INITIAL_USER_REPORTS);
-  const [activeHazards, setActiveHazards] = useState(PREDICTIVE_HAZARDS);
-
-  // Dynamic Impact Metrics
-  const [totalSavedBudget, setTotalSavedBudget] = useState(124500);
-  const [totalSavedCO2, setTotalSavedCO2] = useState(450);
-
-  // Carbon Credit Voucher Redemption Modal
-  const [activeVoucher, setActiveVoucher] = useState(null);
-
-  // AI Governor Chatbot State
-  const [chatMessages, setChatMessages] = useState([
-    { 
-      sender: 'ai', 
-      text: 'Hello! I am your AI City Governor. I actively scan real-time sensor streams and historical patterns to **predict future urban problems** before they occur. Ask me to forecast risks, simulate weather impacts, or inspect sector hazards!' 
-    }
-  ]);
-  const [queryInput, setQueryInput] = useState('');
-  const [scheduledOrders, setScheduledOrders] = useState({});
-
-  // Connect to Backend API & Firestore Realtime Sync on mount
-  useEffect(() => {
-    async function loadBackendData() {
-      try {
-        const res = await fetch('/api/city-data');
-        const data = await res.json();
-        if (data?.reports && data.reports.length > 0) {
-          setUserReports(data.reports);
-        }
-      } catch (err) {
-        console.warn("Backend data fetch operating in client mode:", err);
-      }
-    }
-    loadBackendData();
-
-    if (isFirebaseConfigured) {
-      try {
-        const q = query(collection(db, "reports"));
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-          if (!snapshot.empty) {
-            const firestoreReports = snapshot.docs.map(doc => ({
-              id: doc.id,
-              ...doc.data()
-            }));
-            setUserReports(firestoreReports);
-          }
-        }, (err) => {
-          console.warn("Firestore snapshot notice:", err.message);
-        });
-        return () => unsubscribe();
-      } catch (err) {
-        console.warn("Firestore fallback mode:", err);
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setGovernorBriefIndex(prev => (prev + 1) % GOVERNOR_BRIEFS.length);
-    }, 9000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const handleNewReportSubmit = (newReport) => {
-    setUserReports(prev => [newReport, ...prev]);
-    setRewardPoints(prev => prev + 150);
-    setTotalSavedBudget(prev => prev + 4500);
-    setTotalSavedCO2(prev => prev + 35);
-    confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
-  };
-
-  const handleReportStatusChange = (reportId, newStatus) => {
-    setUserReports(prev => prev.map(r => r.id === reportId ? { ...r, status: newStatus } : r));
-  };
-
-  const handleReportUpvote = (reportId) => {
-    setUserReports(prev => prev.map(r => {
-      if (r.id === reportId) {
-        return {
-          ...r,
-          priorityScore: Math.min(100, (r.priorityScore || 0) + 15),
-          status: 'Verified (Multiple)',
-          timeAgo: 'Just now'
-        };
-      }
-      return r;
-    }));
-    setRewardPoints(prev => prev + 150);
-    setTotalSavedBudget(prev => prev + 1200);
-    confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
-  };
-
-  const triggerWorkOrder = (id) => {
-    setScheduledOrders(prev => ({ ...prev, [id]: true }));
-    setTotalSavedBudget(prev => prev + 18500);
-    setTotalSavedCO2(prev => prev + 120);
-    confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
-  };
-
-  const handleScheduleSimulatedOrder = (order) => {
-    setScheduledOrders(prev => ({ ...prev, [order.id]: true }));
-    setTotalSavedBudget(prev => prev + 22500);
-    setTotalSavedCO2(prev => prev + 180);
-    confetti({ particleCount: 90, spread: 70, origin: { y: 0.6 } });
-  };
-
-  const handleRedeemVoucher = (type, cost, title, desc, icon) => {
-    if (rewardPoints < cost) {
-      alert(`You need ${cost} Carbon Credits to redeem ${title}. Current balance: ${rewardPoints} pts.`);
-      return;
-    }
-
-    setRewardPoints(prev => prev - cost);
-    confetti({ particleCount: 110, spread: 80, origin: { y: 0.6 } });
-
-    const code = `CITY-${type.toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`;
-    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString();
-
-    setActiveVoucher({
-      title: title,
-      desc: desc,
-      code: code,
-      expiresAt: expiresAt,
-      icon: icon
-    });
-  };
-
-  const claimCarbonCredits = () => {
-    confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
-    setRewardPoints(prev => prev + 250);
-  };
-
-  // Connected AI City Governor Backend Request with Future Problem Predictions
-  const handleSendGovernorQuery = async (customText = null) => {
-    const textToSend = customText || queryInput;
-    if (!textToSend.trim()) return;
-    const userMsg = textToSend.trim();
-
-    setChatMessages(prev => [...prev, { sender: 'user', text: userMsg }]);
-    if (!customText) setQueryInput('');
-
-    try {
-      const res = await fetch('/api/governor-ai', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: userMsg })
-      });
-      const data = await res.json();
-      setChatMessages(prev => [...prev, { 
-        sender: 'ai', 
-        text: data.reply,
-        prediction: data.prediction
-      }]);
-    } catch (err) {
-      setChatMessages(prev => [...prev, { 
-        sender: 'ai', 
-        text: `🤖 AI Governor Response: Integrated query regarding "${userMsg}" into neural risk engine.` 
-      }]);
-    }
-  };
-
-  const selectedSector = CITY_SECTORS.find(s => s.id === selectedSectorId) || CITY_SECTORS[0];
+export default function LandingPage() {
+  const marqueeItems = [
+    "Real-Time Digital Twin",
+    "Predictive Drainage & Flood Simulation",
+    "Community Carbon Credits",
+    "AI Governor Neural Reasoning",
+    "Autonomous Sensor Telemetry",
+    "Citizen Civic Action",
+    "Biophilic Urban Resilience",
+    "Zero-Emission Municipal Operations"
+  ];
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      
-      {/* Navbar Header */}
-      <header className="app-header">
-        <div className="logo-container">
-          <span className="logo-badge">CITYMIND AI 2.0</span>
-          <h2 style={{ fontSize: '1.1rem', fontWeight: '700' }}>Sustainable City Intelligence</h2>
-        </div>
+    <div className="editorial-wrapper">
 
-        {/* Navigation Tabs */}
-        <nav className="nav-tabs">
-          <button className={`nav-tab-btn ${activeTab === 'tab-overview' ? 'active' : ''}`} onClick={() => handleTabChange('tab-overview')}>
-            🌐 Overview & Twin Map
-          </button>
-          <button className={`nav-tab-btn ${activeTab === 'tab-citizen' ? 'active' : ''}`} onClick={() => handleTabChange('tab-citizen')}>
-            👤 Citizen Features
-          </button>
-          <button className={`nav-tab-btn ${activeTab === 'tab-admin' ? 'active' : ''}`} onClick={() => handleTabChange('tab-admin')}>
-            🏛️ Admin Dashboard
-          </button>
-          <button className={`nav-tab-btn ${activeTab === 'tab-predictive' ? 'active' : ''}`} onClick={() => handleTabChange('tab-predictive')}>
-            🔮 Predictive Engine
-          </button>
-          <button className={`nav-tab-btn ${activeTab === 'tab-budget-green' ? 'active' : ''}`} onClick={() => handleTabChange('tab-budget-green')}>
-            🌱 Budget & Green Impact
-          </button>
-        </nav>
+      {/* 1. EDITORIAL NAVIGATION BAR */}
+      <nav className="editorial-nav" aria-label="Main Navigation">
+        <Link href="/" className="nav-brand">
+          <span className="brand-dot" aria-hidden="true"></span>
+          <span className="brand-name">CityMind</span>
+          <span className="brand-tag">AI 2.0</span>
+        </Link>
 
-        <div className="header-actions">
-          <button className="btn-danger" onClick={() => setIsEmergency(!isEmergency)}>
-            🌩️ Storm Simulation Mode: {isEmergency ? 'ON' : 'OFF'}
-          </button>
-          <button className="btn-primary" onClick={() => setIsGovernorModalOpen(true)}>
-            🤖 Ask AI City Governor
-          </button>
-        </div>
-      </header>
+        <ul className="nav-menu">
+          <li><a href="#capabilities" className="nav-link">Capabilities</a></li>
+          <li><a href="#showcase" className="nav-link">District 62</a></li>
+          <li><a href="#methodology" className="nav-link">Methodology</a></li>
+          <li><a href="#perspectives" className="nav-link">Perspectives</a></li>
+        </ul>
 
-      {/* Emergency Banner */}
-      {isEmergency && (
-        <div style={{ background: 'var(--crimson-light)', borderBottom: '1px solid var(--crimson)', padding: '8px 32px', fontWeight: '700', fontSize: '0.85rem', textAlign: 'center', color: 'var(--crimson)' }}>
-          ⚠️ EMERGENCY MODE ACTIVE: Heavy Rainfall & Severe Flood Risk Forecasted for Sector 18. Emergency Crews Dispatched.
-        </div>
-      )}
+        <Link href="/dashboard" className="nav-cta-btn">
+          Launch Console
+          <span aria-hidden="true">→</span>
+        </Link>
+      </nav>
 
-      {/* AI Governor Briefing Ticker */}
-      <div className="governor-banner">
-        <div className="governor-avatar">AI</div>
-        <div>
-          <span style={{ fontWeight: '700', color: 'var(--primary)' }}>AI City Governor Brief:</span>
-          <span style={{ marginLeft: '8px', color: 'var(--text-muted)' }}>{GOVERNOR_BRIEFS[governorBriefIndex]}</span>
-        </div>
-      </div>
+      {/* 2. HERO SECTION */}
+      <header className="editorial-hero">
+        <div className="hero-header-row">
+          <div className="hero-badge-pill">
+            <span className="hero-badge-dot"></span>
+            Autonomous Civic Intelligence 2.0
+          </div>
 
-      {/* Main Content Area */}
-      <main className="main-content-container">
+          <h1 className="hero-main-title">
+            Cities that think.<br />
+            <em>Before tomorrow arrives.</em>
+          </h1>
 
-        {/* TAB 1: OVERVIEW & DIGITAL TWIN MAP */}
-        {activeTab === 'tab-overview' && (
-          <section className="tab-page">
-            <div className="overview-grid">
-              <div className="glass-card">
-                <div className="card-header">
-                  <div className="card-title">MAP Interactive Digital Twin Map & Sector Health Score</div>
-                  <span style={{ background: 'var(--emerald-light)', color: 'var(--emerald)', fontSize: '0.72rem', fontWeight: '700', padding: '3px 8px', borderRadius: '4px' }}>LIVE SENSORS ONLINE</span>
-                </div>
+          <div className="hero-split-sub">
+            <p className="hero-subtext">
+              CityMind transforms municipal governance through predictive digital twins,
+              automated infrastructure hazard forecasting, and citizen-powered ecological intelligence.
+            </p>
 
-                {/* Sector Selector Pills */}
-                <div className="sector-pills">
-                  {CITY_SECTORS.map(sec => (
-                    <button
-                      key={sec.id}
-                      className={`sector-pill-btn ${sec.id === selectedSectorId ? 'active' : ''}`}
-                      onClick={() => setSelectedSectorId(sec.id)}
-                    >
-                      {sec.name.split(' ')[0]} {sec.name.split(' ')[1]}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Health Score Hero */}
-                <div className="health-score-hero">
-                  <div>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Current Sector Health Score</div>
-                    <div className="health-pill" style={{ background: (isEmergency && selectedSectorId === 'sec-18') ? 'var(--crimson)' : undefined, color: (isEmergency && selectedSectorId === 'sec-18') ? '#fff' : undefined }}>
-                      <span>{(isEmergency && selectedSectorId === 'sec-18') ? 20 : selectedSector.healthScore}</span>
-                      <span style={{ fontSize: '1rem', color: (isEmergency && selectedSectorId === 'sec-18') ? 'rgba(255,255,255,0.8)' : 'var(--text-muted)' }}>/ 100</span>
-                    </div>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '0.9rem', fontWeight: '700', color: 'var(--text-main)' }}>{selectedSector.name}</div>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--amber)', fontWeight: '600' }}>{selectedSector.predictedRisk}</div>
-                  </div>
-                </div>
-
-                <DigitalTwinMap
-                  selectedSectorId={selectedSectorId}
-                  onSectorSelect={setSelectedSectorId}
-                  userReports={userReports}
-                  isSimulationMode={isEmergency}
-                />
-              </div>
-
-              {/* Metrics Overview Side Panel */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                <div className="glass-card">
-                  <div className="card-title" style={{ marginBottom: '12px' }}>📊 Sector Metrics Breakdown</div>
-                  <div className="metrics-mini-list">
-                    <div className="metric-row"><span>🛣️ Road Quality</span><strong>{selectedSector.metrics.roadQuality}/100</strong></div>
-                    <div className="metric-row"><span>🚗 Traffic Flow</span><strong>{selectedSector.metrics.traffic}/100</strong></div>
-                    <div className="metric-row"><span>💧 Water Pressure</span><strong>{(isEmergency && selectedSectorId === 'sec-18') ? '7.8 Bar (BURST DANGER)' : selectedSector.metrics.waterPressure}</strong></div>
-                    <div className="metric-row"><span>⚡ Grid Load</span><strong>{(isEmergency && selectedSectorId === 'sec-18') ? '98% (OVERLOAD)' : selectedSector.metrics.gridLoad}</strong></div>
-                    <div className="metric-row"><span>🍃 Air Quality</span><strong>{selectedSector.metrics.airQuality}/100</strong></div>
-                  </div>
-                </div>
-
-                <div className="glass-card">
-                  <div className="card-title" style={{ marginBottom: '8px' }}>🤖 AI Governor Quick Insights</div>
-                  <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: '1.5' }}>
-                    "Sector 62 exhibits 85% pothole risk due to upcoming monsoon storms. Proactive micro-surfacing will save ₹45,000 in asphalt damage."
-                  </p>
-                  <button className="btn-primary" style={{ width: '100%', marginTop: '12px', padding: '8px', fontSize: '0.8rem' }} onClick={() => setIsGovernorModalOpen(true)}>
-                    🔮 Ask AI Governor to Predict Future Risks
-                  </button>
-                </div>
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* TAB 2: CITIZEN FEATURES SUITE */}
-        {activeTab === 'tab-citizen' && (
-          <section className="tab-page">
-            <CitizenPortal
-              userReports={userReports}
-              onNewReportSubmit={handleNewReportSubmit}
-              onReportUpvote={handleReportUpvote}
-              rewardPoints={rewardPoints}
-              userProfile={userProfile}
-              onLoginSuccess={setUserProfile}
-              onClaimCarbonCredits={claimCarbonCredits}
-            />
-          </section>
-        )}
-
-        {/* TAB 3: ADMIN DASHBOARD SUITE */}
-        {activeTab === 'tab-admin' && (
-          <section className="tab-page">
-            <AdminDashboard
-              userReports={userReports}
-              predictiveHazards={activeHazards}
-              selectedSectorId={selectedSectorId}
-              onSectorSelect={setSelectedSectorId}
-              onReportStatusChange={handleReportStatusChange}
-            />
-          </section>
-        )}
-
-        {/* TAB 4: PREDICTIVE MAINTENANCE ENGINE */}
-        {activeTab === 'tab-predictive' && (
-          <section className="tab-page">
-            <div className="glass-card" style={{ maxWidth: '960px', margin: '0 auto' }}>
-              <div className="card-header">
-                <div className="card-title">🔮 Proactive Predictive Maintenance Engine</div>
-                <span className="badge-risk">AI PREDICTIVE ACTIVE</span>
-              </div>
-
-              <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '16px' }}>
-                CityMind AI predicts infrastructure damage <strong>before</strong> complaints occur using rainfall forecasts, pipe age, subsoil moisture, and vehicle density.
-              </p>
-
-              {/* Active Hazards List */}
-              {activeHazards.map(haz => (
-                <div key={haz.id} className={`hazard-card ${haz.probability > 80 ? 'high-prob' : ''}`}>
-                  <div className="hazard-header">
-                    <strong style={{ fontSize: '0.95rem' }}>{haz.issue}</strong>
-                    <span className="badge-risk">{haz.probability}% PROBABILITY</span>
-                  </div>
-
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '8px' }}>📍 {haz.sector} | ⏳ {haz.timeframe}</div>
-                  <div style={{ fontSize: '0.85rem', marginBottom: '8px' }}>💡 <em>{haz.recommendation}</em></div>
-
-                  <div className="impact-grid">
-                    <div>💰 Est Cost: <strong>{haz.budget.cost}</strong></div>
-                    <div>👷 Manpower: <strong>{haz.budget.workers} Workers</strong></div>
-                    <div>🌱 CO₂ Saved: <strong>{haz.greenImpact.co2Saved || '120 kg'}</strong></div>
-                    <div>👥 Impacted: <strong>{haz.greenImpact.people}</strong></div>
-                  </div>
-
-                  <button
-                    className="btn-primary"
-                    style={{ width: '100%', marginTop: '12px', padding: '8px', fontSize: '0.8rem', background: scheduledOrders[haz.id] ? '#10b981' : undefined }}
-                    onClick={() => triggerWorkOrder(haz.id)}
-                    disabled={scheduledOrders[haz.id]}
-                  >
-                    {scheduledOrders[haz.id] ? '✓ Work Order Scheduled (Prevented Complaint)' : '⚡ Trigger Proactive Maintenance Work Order'}
-                  </button>
-                </div>
-              ))}
-
-              {/* Interactive "What-If" AI Predictive Simulator Component */}
-              <PredictiveSimulator onScheduleWorkOrder={handleScheduleSimulatedOrder} />
-            </div>
-          </section>
-        )}
-
-        {/* TAB 5: AI BUDGET PLANNER & GREEN IMPACT */}
-        {activeTab === 'tab-budget-green' && (
-          <section className="tab-page">
-            <div className="glass-card" style={{ maxWidth: '960px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <div className="card-header">
-                <div className="card-title">🌱 AI Budget Planner & Green Impact Calculator</div>
-                <span style={{ background: 'var(--emerald-light)', color: 'var(--emerald)', fontSize: '0.72rem', fontWeight: '700', padding: '3px 8px', borderRadius: '4px' }}>SUSTAINABILITY MATRIX</span>
-              </div>
-              <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-                Quantifies municipal resource allocation and environmental benefit (CO₂/Methane reduction, area restored, and citizens benefited).
-              </p>
-
-              <div className="budget-green-grid">
-                <div className="impact-card">
-                  <h3>💰 Total Budget Saved</h3>
-                  <div className="stat-highlight">₹{totalSavedBudget.toLocaleString()}</div>
-                  <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Saved by repairing issues before structural failure.</p>
-                </div>
-                <div className="impact-card">
-                  <h3>🌱 Methane & CO₂ Saved</h3>
-                  <div className="stat-highlight" style={{ color: 'var(--emerald)' }}>{totalSavedCO2} kg</div>
-                  <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Achieved through automated EV compaction & proactive repairs.</p>
-                </div>
-                <div className="impact-card">
-                  <h3>👥 Citizens Benefited</h3>
-                  <div className="stat-highlight" style={{ color: 'var(--primary)' }}>1,45,000</div>
-                  <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Across Sector 62, Sector 18, and Cyber City Plaza.</p>
-                </div>
-              </div>
-
-              {/* Carbon Credit Redemption Simulator */}
-              <div style={{ background: 'var(--panel-bg)', border: '1px solid var(--panel-border)', borderRadius: '12px', padding: '18px', boxShadow: 'var(--shadow-sm)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                  <h3 style={{ fontSize: '1rem', fontWeight: '700' }}>💳 Redeem Citizen Carbon Credits</h3>
-                  <span style={{ fontSize: '0.85rem', color: 'var(--emerald)', fontWeight: '700' }}>Balance: {rewardPoints} Carbon Credits</span>
-                </div>
-
-                <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '14px' }}>
-                  Citizens can redeem accumulated reward points for public transit passes, EV charging discounts, or municipal utility bill reductions.
-                </p>
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
-                  <div style={{ background: 'var(--bg-subtle)', padding: '14px', borderRadius: '10px', border: '1px solid var(--panel-border)', textAlign: 'center' }}>
-                    <div style={{ fontSize: '1.8rem', marginBottom: '4px' }}>🚌</div>
-                    <strong style={{ display: 'block', fontSize: '0.9rem', marginBottom: '4px' }}>Metro 1-Day Pass</strong>
-                    <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block', marginBottom: '10px' }}>Cost: 200 Credits</span>
-                    <button
-                      className="btn-primary"
-                      style={{ padding: '6px 12px', fontSize: '0.75rem', width: '100%' }}
-                      onClick={() => handleRedeemVoucher('metro', 200, 'Metro 1-Day Pass', 'Unlimited 1-day travel across all metro lines.', '🚌')}
-                    >
-                      Redeem Pass
-                    </button>
-                  </div>
-
-                  <div style={{ background: 'var(--bg-subtle)', padding: '14px', borderRadius: '10px', border: '1px solid var(--panel-border)', textAlign: 'center' }}>
-                    <div style={{ fontSize: '1.8rem', marginBottom: '4px' }}>⚡</div>
-                    <strong style={{ display: 'block', fontSize: '0.9rem', marginBottom: '4px' }}>EV Charging Discount</strong>
-                    <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block', marginBottom: '10px' }}>Cost: 350 Credits</span>
-                    <button
-                      className="btn-primary"
-                      style={{ padding: '6px 12px', fontSize: '0.75rem', width: '100%' }}
-                      onClick={() => handleRedeemVoucher('ev', 350, 'EV Charging Voucher', '₹150 off at any municipal EV fast-charging hub.', '⚡')}
-                    >
-                      Redeem Voucher
-                    </button>
-                  </div>
-
-                  <div style={{ background: 'var(--bg-subtle)', padding: '14px', borderRadius: '10px', border: '1px solid var(--panel-border)', textAlign: 'center' }}>
-                    <div style={{ fontSize: '1.8rem', marginBottom: '4px' }}>💧</div>
-                    <strong style={{ display: 'block', fontSize: '0.9rem', marginBottom: '4px' }}>Water Bill Rebate (5%)</strong>
-                    <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block', marginBottom: '10px' }}>Cost: 500 Credits</span>
-                    <button
-                      className="btn-primary"
-                      style={{ padding: '6px 12px', fontSize: '0.75rem', width: '100%' }}
-                      onClick={() => handleRedeemVoucher('water', 500, 'Water Utility Bill Rebate', '5% discount credited directly to next monthly water bill.', '💧')}
-                    >
-                      Redeem Rebate
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-          </section>
-        )}
-
-      </main>
-
-      {/* AI City Governor Chatbot Modal with Prediction Capabilities */}
-      {isGovernorModalOpen && (
-        <div className="modal-overlay">
-          <div className="glass-card modal-card" style={{ maxWidth: '640px' }}>
-            <div className="card-header">
-              <div className="card-title">🤖 AI City Governor Decision Support</div>
-              <button onClick={() => setIsGovernorModalOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1.2rem' }}>✕</button>
-            </div>
-            
-            {/* Quick Predictive Prompt Chips */}
-            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '10px' }}>
-              <button className="sector-pill-btn" onClick={() => handleSendGovernorQuery("🔮 Predict future problems across all sectors")}>🔮 Predict Future Risks</button>
-              <button className="sector-pill-btn" onClick={() => handleSendGovernorQuery("Tell me about Sector 62 pothole risk")}>🛣️ Sector 62 Potholes</button>
-              <button className="sector-pill-btn" onClick={() => handleSendGovernorQuery("Forecast Sector 18 flood emergency")}>🌧️ Sector 18 Flood</button>
-              <button className="sector-pill-btn" onClick={() => handleSendGovernorQuery("Predict power grid thermal overload")}>⚡ Cyber City Power</button>
-            </div>
-
-            <div style={{ height: '300px', overflowY: 'auto', background: 'var(--bg-subtle)', border: '1px solid var(--panel-border)', padding: '12px', borderRadius: '10px', marginBottom: '12px' }}>
-              {chatMessages.map((msg, idx) => (
-                <div
-                  key={idx}
-                  style={{
-                    marginBottom: '12px',
-                    padding: '10px 14px',
-                    borderRadius: '10px',
-                    fontSize: '0.85rem',
-                    background: msg.sender === 'user' ? 'var(--primary-light)' : 'var(--emerald-light)',
-                    border: msg.sender === 'user' ? '1px solid rgba(99,102,241,0.3)' : '1px solid rgba(5,150,105,0.25)',
-                    color: 'var(--text-main)',
-                    whiteSpace: 'pre-line'
-                  }}
-                >
-                  <div>{msg.text}</div>
-
-                  {/* If message includes structured prediction details */}
-                  {msg.prediction && (
-                    <div style={{ marginTop: '10px', background: 'var(--panel-bg)', border: '1px solid var(--panel-border)', borderLeft: '4px solid var(--crimson)', padding: '10px', borderRadius: '8px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                        <strong style={{ fontSize: '0.85rem', color: 'var(--crimson)' }}>🚨 {msg.prediction.issue}</strong>
-                        <span style={{ background: 'var(--crimson-light)', color: 'var(--crimson)', fontWeight: '700', fontSize: '0.75rem', padding: '2px 6px', borderRadius: '4px' }}>
-                          {msg.prediction.probability}% RISK
-                        </span>
-                      </div>
-
-                      <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '8px' }}>
-                        📍 {msg.prediction.sector} | ⏳ Window: {msg.prediction.timeframe} | 💰 Save: {msg.prediction.saved}
-                      </div>
-
-                      <button
-                        className="btn-primary"
-                        style={{ width: '100%', padding: '6px', fontSize: '0.75rem', background: scheduledOrders[msg.prediction.id] ? '#10b981' : undefined }}
-                        onClick={() => triggerWorkOrder(msg.prediction.id)}
-                        disabled={scheduledOrders[msg.prediction.id]}
-                      >
-                        {scheduledOrders[msg.prediction.id] ? '✓ Preventative Action Dispatched' : msg.prediction.actionLabel || '⚡ Dispatch Preventative Team'}
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <input
-                type="text"
-                placeholder="e.g. Predict future risks for Sector 62 next week..."
-                value={queryInput}
-                onChange={(e) => setQueryInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSendGovernorQuery()}
-                style={{ flex: 1, background: 'var(--panel-bg)', border: '1px solid var(--panel-border)', color: 'var(--text-main)', padding: '10px', borderRadius: '8px' }}
-              />
-              <button className="btn-primary" onClick={() => handleSendGovernorQuery()}>Send</button>
+            <div className="hero-actions">
+              <Link href="/dashboard" className="btn-editorial-dark">
+                Launch Live Console
+                <span aria-hidden="true">→</span>
+              </Link>
+              <a href="#showcase" className="btn-editorial-outline">
+                Explore District 62 Model
+              </a>
             </div>
           </div>
         </div>
-      )}
 
-      {/* Carbon Credit Redemption Voucher Modal */}
-      {activeVoucher && (
-        <VoucherModal voucher={activeVoucher} onClose={() => setActiveVoucher(null)} />
-      )}
+        {/* Hero Architectural Visual */}
+        <div className="hero-banner-image">
+          <img
+            src="/images/hero-city.jpg"
+            alt="Editorial aerial view of a sustainable biophilic smart city with solar arrays and digital sensor network"
+            loading="eager"
+          />
+          <div className="hero-image-overlay-badge">
+            <span className="brand-dot" style={{ width: '8px', height: '8px' }}></span>
+            <div>
+              <strong>DISTRICT 62 — ACTIVE BIOPHILIC TWIN</strong>
+              <span>94.2% Grid Efficiency • 14,800 Edge Sensors Streaming</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* 3. MARQUEE TICKER */}
+      <section className="editorial-marquee" aria-label="Feature Highlights">
+        <div className="marquee-track">
+          {[...marqueeItems, ...marqueeItems].map((item, idx) => (
+            <div key={idx} className="marquee-item">
+              <span>{item}</span>
+              <span className="marquee-separator" aria-hidden="true">✦</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* 4. SERVICES / CAPABILITIES SECTION */}
+      <section id="capabilities" className="editorial-section">
+        <div className="services-header-row">
+          <div>
+            <span className="section-label">01 / Core Capabilities</span>
+            <h2 className="section-title">Engineered for resilient, autonomous urban ecosystems.</h2>
+          </div>
+          <p className="section-subtitle">
+            Three interconnected layers of artificial intelligence working in continuous harmony across municipal hardware, predictive analytics, and civic participation.
+          </p>
+        </div>
+
+        <div className="services-grid">
+          {/* Card 1 */}
+          <article className="service-card">
+            <div className="service-card-media">
+              <img
+                src="/images/service-digital-twin.jpg"
+                alt="3D isometric architectural digital twin simulation with energy flows and tree canopy density"
+                loading="lazy"
+              />
+              <span className="service-card-tag">Realtime 3D</span>
+            </div>
+            <div className="service-card-body">
+              <h3 className="service-card-title">Digital Twin & Spatial Neural Sim</h3>
+              <p className="service-card-desc">
+                Continuous 3D district modeling with sub-meter spatial precision, tracking energy vectors, heat island distribution, and tree canopy health across every municipal sector.
+              </p>
+              <Link href="/dashboard" className="service-card-link">
+                Explore Twin Map <span aria-hidden="true">→</span>
+              </Link>
+            </div>
+          </article>
+
+          {/* Card 2 */}
+          <article className="service-card">
+            <div className="service-card-media">
+              <img
+                src="/images/service-predictive.jpg"
+                alt="Minimalist environmental telemetry sensor post in lush park setting"
+                loading="lazy"
+              />
+              <span className="service-card-tag">Early Warning</span>
+            </div>
+            <div className="service-card-body">
+              <h3 className="service-card-title">Predictive Infrastructure Shield</h3>
+              <p className="service-card-desc">
+                Machine learning algorithms detect water pipe pressure surges, structural pavement fissures, and storm drainage choke points up to 48 hours before physical failure.
+              </p>
+              <Link href="/dashboard" className="service-card-link">
+                View Risk Simulator <span aria-hidden="true">→</span>
+              </Link>
+            </div>
+          </article>
+
+          {/* Card 3 */}
+          <article className="service-card">
+            <div className="service-card-media">
+              <img
+                src="/images/service-citizen.jpg"
+                alt="Citizens gathered in a modern urban pocket garden collaborating on civic initiatives"
+                loading="lazy"
+              />
+              <span className="service-card-tag">Civic Synergy</span>
+            </div>
+            <div className="service-card-body">
+              <h3 className="service-card-title">Citizen Intelligence & Eco Rewards</h3>
+              <p className="service-card-desc">
+                Empowers residents with verified geotagged hazard reporting, community micro-challenges, and redeemable municipal carbon credits directly exchangeable for transit and local goods.
+              </p>
+              <Link href="/dashboard" className="service-card-link">
+                Join Citizen Portal <span aria-hidden="true">→</span>
+              </Link>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      {/* 5. FEATURED CASE STUDY SHOWCASE */}
+      <section id="showcase" className="editorial-section" style={{ paddingTop: 0 }}>
+        <div className="showcase-container">
+          <div className="showcase-media">
+            <img
+              src="/images/project-smart-district.jpg"
+              alt="Night architectural view of District 62 revitalization with warm promenade lighting and sustainable architecture"
+              loading="lazy"
+            />
+          </div>
+
+          <div className="showcase-content">
+            <span className="section-label">Case Study / District 62</span>
+            <h2 className="section-title" style={{ fontSize: 'clamp(2rem, 3vw, 2.8rem)' }}>
+              From high-risk flood sector to carbon-neutral civic promenade.
+            </h2>
+            <p className="section-subtitle" style={{ fontSize: '1rem', marginBottom: '24px' }}>
+              When severe monsoon weather threatened District 62’s subterranean storm grid,
+              CityMind deployed continuous acoustic telemetry and predictive hydraulic simulation.
+              By forecasting drainage choke points 36 hours ahead, municipal teams rerouted pressure,
+              preventing over 18 major sewer overflows and saving tens of thousands in emergency repairs.
+            </p>
+
+            <Link href="/dashboard" className="service-card-link" style={{ marginBottom: '8px' }}>
+              Inspect District 62 Live Telemetry in Console <span aria-hidden="true">→</span>
+            </Link>
+
+            <div className="showcase-stats-row">
+              <div className="showcase-stat-box">
+                <strong>$124.5K</strong>
+                <span>Emergency Repair Costs Averted</span>
+              </div>
+              <div className="showcase-stat-box">
+                <strong>450 T</strong>
+                <span>CO₂ Emissions Mitigated</span>
+              </div>
+              <div className="showcase-stat-box">
+                <strong>48 Hrs</strong>
+                <span>Average Hazard Pre-warning Window</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 6. PROCESS / METHODOLOGY (01-04) */}
+      <section id="methodology" className="editorial-section">
+        <span className="section-label">02 / Methodology</span>
+        <h2 className="section-title">How autonomous municipal intelligence comes to life.</h2>
+        <p className="section-subtitle">
+          A transparent, closed-loop orchestration pipeline connecting real-world edge hardware with generative reasoning and citizen ground-truth.
+        </p>
+
+        <div className="process-grid">
+          <div className="process-step-card">
+            <span className="process-num">01</span>
+            <h3 className="process-title">Telemetry Ingestion</h3>
+            <p className="process-desc">
+              Over 14,800 edge IoT hydrologic, acoustic, air quality, and traffic nodes continuously stream granular telemetry into low-latency municipal aggregators.
+            </p>
+          </div>
+
+          <div className="process-step-card">
+            <span className="process-num">02</span>
+            <h3 className="process-title">Neural Calibration</h3>
+            <p className="process-desc">
+              Predictive neural networks calibrate against historical climate records and spatial topology, forecasting systemic infrastructure strain before it occurs.
+            </p>
+          </div>
+
+          <div className="process-step-card">
+            <span className="process-num">03</span>
+            <h3 className="process-title">Autonomous Dispatch</h3>
+            <p className="process-desc">
+              The AI City Governor generates pre-emptive maintenance tickets and automatically alerts civil engineers with recommended mitigation pathways.
+            </p>
+          </div>
+
+          <div className="process-step-card">
+            <span className="process-num">04</span>
+            <h3 className="process-title">Citizen Verification</h3>
+            <p className="process-desc">
+              Local residents verify completed restorations via on-device GPS photo logs, earning verified carbon credits and civic merchant vouchers.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* 7. TESTIMONIAL QUOTE SECTION */}
+      <section id="perspectives" className="editorial-quote-section">
+        <div className="quote-inner">
+          <div className="quote-mark" aria-hidden="true">“</div>
+          <blockquote className="quote-text">
+            “CityMind has turned municipal governance from reactive crisis firefighting into calm, predictive orchestration. We stopped treating symptoms and started healing the city’s living fabric.”
+          </blockquote>
+          <cite style={{ fontStyle: 'normal' }}>
+            <div className="quote-author">Dr. Elena Rostova</div>
+            <div className="quote-role">Director of Urban Resilience & Digital Infrastructure, District 62</div>
+          </cite>
+        </div>
+      </section>
+
+      {/* 8. DARK FOREST CALL-TO-ACTION BANNER */}
+      <section className="editorial-cta-section">
+        <div className="cta-banner-card">
+          <div className="cta-banner-inner">
+            <h2 className="cta-banner-title">
+              Ready to experience the future of autonomous civic planning?
+            </h2>
+            <p className="cta-banner-desc">
+              Step inside the live CityMind console to interact with the real-time digital twin map,
+              run predictive storm simulations, inspect active citizen reports, and query the AI Governor.
+            </p>
+
+            <div className="cta-banner-actions">
+              <Link href="/dashboard" className="btn-cream-action">
+                Launch CityMind Console
+                <span aria-hidden="true">→</span>
+              </Link>
+              <Link href="/dashboard" className="btn-dark-outline">
+                Explore Citizen Rewards
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 9. EDITORIAL FOOTER */}
+      <footer className="editorial-footer">
+        <div className="footer-inner">
+          <div className="footer-top">
+            <div className="footer-brand-col">
+              <div className="footer-brand-title">CityMind AI</div>
+              <p className="footer-brand-desc">
+                Urban intelligence for living cities. Transforming municipal infrastructure and civic governance through predictive digital twins and community collaboration.
+              </p>
+              <div className="status-badge">
+                <span className="status-dot"></span>
+                <span>All municipal sensor nodes online (99.98%)</span>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="footer-col-title">Platform</h4>
+              <ul className="footer-links-list">
+                <li><Link href="/dashboard">Digital Twin Map</Link></li>
+                <li><Link href="/dashboard">Predictive Risk Engine</Link></li>
+                <li><Link href="/dashboard">Citizen Action Portal</Link></li>
+                <li><Link href="/dashboard">AI City Governor</Link></li>
+                <li><Link href="/dashboard">Carbon Credit Ledger</Link></li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="footer-col-title">Ecosystem</h4>
+              <ul className="footer-links-list">
+                <li><a href="#showcase">District 62 Pilot</a></li>
+                <li><a href="#capabilities">Sensor Telemetry Specs</a></li>
+                <li><a href="#methodology">Predictive Algorithms</a></li>
+                <li><a href="#capabilities">Civic Merchant Network</a></li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="footer-col-title">Governance</h4>
+              <ul className="footer-links-list">
+                <li><a href="#methodology">Data Privacy Standards</a></li>
+                <li><a href="#methodology">Transparent AI Briefs</a></li>
+                <li><a href="#capabilities">Municipal Ethics Charter</a></li>
+                <li><Link href="/dashboard">Incident Escalation</Link></li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="footer-bottom">
+            <div>© 2026 CityMind AI. Developed for Sustainable Urban Governance.</div>
+            <div>Built with Next.js 16, Leaflet & Gemini AI</div>
+          </div>
+        </div>
+      </footer>
 
     </div>
   );

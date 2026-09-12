@@ -36,7 +36,7 @@ export default function DigitalTwinMap({ selectedSectorId, onSectorSelect, userR
       zoomControl: false
     });
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
       attribution: '&copy; CityMind AI 2.0 | Digital Twin Engine',
       subdomains: 'abcd',
       maxZoom: 19
@@ -219,37 +219,37 @@ export default function DigitalTwinMap({ selectedSectorId, onSectorSelect, userR
       {/* Layer Toggle Floating Overlay Controls */}
       <div style={{
         position: 'absolute',
-        top: '12px',
-        right: '12px',
+        top: '14px',
+        right: '14px',
         zIndex: 400,
-        background: 'rgba(255, 255, 255, 0.95)',
-        backdropFilter: 'blur(8px)',
-        padding: '8px 12px',
-        borderRadius: '10px',
-        boxShadow: '0 2px 10px rgba(0,0,0,0.15)',
+        background: '#FFFFFF',
+        border: '1px solid var(--border-cream)',
+        padding: '8px 16px',
+        borderRadius: '999px',
+        boxShadow: 'var(--shadow-md)',
         display: 'flex',
-        gap: '10px',
-        fontSize: '0.75rem',
+        gap: '14px',
+        fontSize: '0.78rem',
         fontWeight: '600'
       }}>
-        <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', color: 'var(--emerald)' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer', color: 'var(--forest-800)' }}>
           <input type="checkbox" checked={showSectors} onChange={(e) => setShowSectors(e.target.checked)} />
           🟢 Sectors
         </label>
 
-        <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', color: 'var(--crimson)' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer', color: 'var(--crimson)' }}>
           <input type="checkbox" checked={showHazards} onChange={(e) => setShowHazards(e.target.checked)} />
-          📍 Pins
+          📍 Risk Pins
         </label>
         
-        <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', color: '#dc2626' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer', color: '#B91C1C' }}>
           <input type="checkbox" checked={showHeatmap} onChange={(e) => setShowHeatmap(e.target.checked)} />
           🔥 Heatmap
         </label>
 
-        <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', color: 'var(--primary)' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer', color: 'var(--sage-500)' }}>
           <input type="checkbox" checked={showReports} onChange={(e) => setShowReports(e.target.checked)} />
-          📸 Live Reports
+          📸 Citizen Reports
         </label>
       </div>
 
