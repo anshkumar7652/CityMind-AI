@@ -55,7 +55,7 @@ The public-facing portal presents an architectural, warm editorial aesthetic bui
 ---
 
 ### 2. Municipal Digital Twin Spatial Matrix
-Real-time GIS mapping powered by Leaflet and Carto Voyager basemaps, displaying live sector diagnostics, dynamic risk heatmaps, and spatial telemetry.
+Real-time GIS mapping powered by Leaflet and OpenStreetMap basemaps, displaying live sector diagnostics, dynamic risk heatmaps, and spatial telemetry.
 
 ![Digital Twin Map & Sector Telemetry](docs/screenshots/dashboard-twin.png)
 

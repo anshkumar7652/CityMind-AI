@@ -36,9 +36,8 @@ export default function DigitalTwinMap({ selectedSectorId, onSectorSelect, userR
       zoomControl: false
     });
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; CityMind AI 2.0 | Digital Twin Engine',
-      subdomains: 'abcd',
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a> contributors | CityMind AI Digital Twin',
       maxZoom: 19
     }).addTo(map);
 
